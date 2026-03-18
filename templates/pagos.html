@@ -1,0 +1,655 @@
+{% extends "base.html" %}
+{% block title %}Pagos | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .summary-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .summary-card .label{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    letter-spacing:.4px;
+  }
+
+  .summary-card .value{
+    margin-top:8px;
+    font-size:28px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .payment-layout{
+    display:grid;
+    grid-template-columns:390px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .history-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(290px, 1fr));
+    gap:18px;
+  }
+
+  .history-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    overflow:hidden;
+    transition:.2s ease;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .history-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 16px 28px rgba(0,0,0,.14);
+  }
+
+  .history-top{
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,.10), transparent 30%),
+      linear-gradient(180deg,#1f2937 0%,#111827 100%);
+    color:#fff;
+    padding:18px 16px;
+    min-height:235px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+
+  .history-badges{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .history-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.4px;
+    width:max-content;
+  }
+
+  .badge-alquiler{
+    background:#16a34a;
+    color:#fff;
+  }
+
+  .badge-diario{
+    background:#f59e0b;
+    color:#111827;
+  }
+
+  .badge-servicio{
+    background:#64748b;
+    color:#fff;
+  }
+
+  .history-main{
+    margin-top:10px;
+  }
+
+  .history-name{
+    font-size:22px;
+    font-weight:900;
+    line-height:1.15;
+    margin-bottom:4px;
+  }
+
+  .history-property{
+    font-size:14px;
+    color:#e5e7eb;
+    font-weight:700;
+  }
+
+  .history-info{
+    margin-top:14px;
+    font-size:13px;
+    color:#d1d5db;
+    line-height:1.6;
+  }
+
+  .history-info strong{
+    color:#fff;
+  }
+
+  .history-actions{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+    padding:12px;
+    background:#fff;
+    border-top:1px solid #f1f5f9;
+  }
+
+  .history-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    border:none;
+    border-radius:12px;
+    padding:10px 8px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+  }
+
+  .btn-pdf{
+    background:#ef4444;
+    color:#fff;
+  }
+
+  .btn-ticket{
+    background:#0f766e;
+    color:#fff;
+  }
+
+  .btn-edit{
+    background:#f59e0b;
+    color:#111827;
+  }
+
+  .btn-wa{
+    background:#22c55e;
+    color:#fff;
+  }
+
+  .btn-delete{
+    background:#fee2e2;
+    color:#991b1b;
+    border:1px solid #fecaca;
+  }
+
+  .search-box{
+    margin-bottom:14px;
+  }
+
+  .helper-box{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+
+  .preview-box{
+    border:1px dashed #d1d5db;
+    border-radius:14px;
+    padding:14px;
+    background:#fcfcfd;
+  }
+
+  .empty-box{
+    border:2px dashed #d1d5db;
+    border-radius:16px;
+    padding:28px 20px;
+    text-align:center;
+    color:#6b7280;
+    background:#f9fafb;
+    font-weight:700;
+  }
+
+  @media (max-width: 992px){
+    .payment-layout{
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (max-width: 640px){
+    .history-actions{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Gestión de Pagos</h1>
+      <p>Cobra por contrato y periodo, aplicando alquiler, luz y otros cargos pendientes.</p>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Pagos registrados</div>
+      <div class="value">{{ pagos|length }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Periodos pendientes</div>
+      <div class="value">{{ periodos_pendientes|length }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Total cobrado</div>
+      <div class="value">
+        S/ {{ "%.2f"|format((pagos | sum(attribute='monto')) if pagos else 0) }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Último pago</div>
+      <div class="value" style="font-size:18px;">
+        {% if pagos|length > 0 %}
+          {{ pagos[0].fecha_pago }}
+        {% else %}
+          -
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="payment-layout">
+
+    <div>
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-cash-coin me-2"></i> Registrar Pago del Periodo
+        </div>
+
+        <div class="card-body">
+
+          <div class="helper-box">
+            <div style="font-weight:800;color:#111827;">¿Cómo funciona este cobro?</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+              Selecciona un contrato con periodo pendiente. El sistema muestra el total adeudado del periodo y te permite pagar completo o parcial.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Buscar inquilino / DNI / propiedad / periodo</label>
+            <input id="qPago" class="form-control" placeholder="Ej: juan / 12345678 / cuarto 2 / 2026-03">
+            <div class="form-text">
+              Filtra la lista de periodos pendientes en tiempo real.
+            </div>
+          </div>
+
+          <form action="/pagos/crear" method="post" id="frmPagoPeriodo" class="row g-3">
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Contrato + Periodo pendiente</label>
+              <select class="form-select" id="periodoSelect" required>
+                {% for item in periodos_pendientes %}
+                <option
+                  value="{{ item.contrato_id }}||{{ item.periodo }}"
+                  data-contrato="{{ item.contrato_id }}"
+                  data-periodo="{{ item.periodo }}"
+                  data-nombre="{{ item.inquilino|lower }}"
+                  data-dni="{{ item.dni }}"
+                  data-prop="{{ item.propiedad|lower }}"
+                  data-pendiente="{{ '%.2f'|format(item.total_pendiente) }}"
+                >
+                  {{ item.inquilino }} ({{ item.dni }}) | {{ item.propiedad }} | {{ item.periodo }} | TOTAL: S/ {{ "%.2f"|format(item.total_pendiente) }}
+                </option>
+                {% endfor %}
+              </select>
+
+              <input type="hidden" name="contrato_id" id="contrato_id_hidden">
+              <input type="hidden" name="periodo" id="periodo_hidden">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Total pendiente</label>
+              <input id="totalPendiente" class="form-control" value="S/ 0.00" readonly>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Acción rápida</label>
+              <button type="button" class="btn btn-soft w-100" id="btnPagarTodo">
+                <i class="bi bi-check2-circle me-1"></i> Pagar todo
+              </button>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Monto a pagar (S/)</label>
+              <input class="form-control" id="monto_total" type="number" step="0.01" min="0" name="monto_total" required>
+              <div class="form-text text-danger d-none" id="errMonto">
+                El monto no puede exceder el total pendiente ni ser menor o igual a cero.
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Fecha de pago</label>
+              <input class="form-control" id="fecha_pago" type="date" name="fecha_pago" required>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Método</label>
+              <select class="form-select" name="metodo" required>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Yape">Yape</option>
+                <option value="Plin">Plin</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <div class="preview-box">
+                <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:#6b7280;letter-spacing:.4px;">
+                  Vista previa del cobro
+                </div>
+                <div style="margin-top:10px;">
+                  <div style="font-size:18px;font-weight:900;color:#111827;" id="previewPagoCliente">Cliente / contrato</div>
+                  <div style="font-size:14px;color:#6b7280;font-weight:700;" id="previewPagoPeriodo">Periodo pendiente</div>
+                  <div style="margin-top:6px;font-size:14px;color:#15803d;font-weight:900;" id="previewPagoPendiente">Total pendiente: S/ 0.00</div>
+                  <div style="margin-top:4px;font-size:14px;color:#111827;font-weight:800;" id="previewPagoMonto">Monto a pagar: S/ 0.00</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+              <button class="btn btn-credimas" type="submit" id="btnGuardarPago">
+                <i class="bi bi-check2-circle me-1"></i> Guardar Pago
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card-pro">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span><i class="bi bi-journal-text me-2"></i> Historial de Aplicaciones de Pago</span>
+          <span id="contadorPagos" class="text-muted small"></span>
+        </div>
+
+        <div class="card-body">
+          {% if pagos|length > 0 %}
+          <div class="history-grid">
+            {% for pago in pagos %}
+            <div class="history-card pagoRow"
+                 data-search="{{ pago.contrato.inquilino.nombre|lower }} {{ pago.contrato.inquilino.dni }} {{ pago.contrato.propiedad.tipo|lower }} {{ pago.contrato.propiedad.numero|lower }} {{ (pago.cargo.periodo if pago.cargo else '')|lower }} {{ (pago.metodo or '')|lower }}">
+
+              <div class="history-top">
+                <div class="history-badges">
+                  {% if pago.cargo %}
+                    {% if pago.cargo.concepto == "ALQUILER_MENSUAL" or pago.cargo.concepto == "ALQUILER_MENSUAL_AMPLIACION" %}
+                      <span class="history-badge badge-alquiler">
+                        <i class="bi bi-house-check"></i> Alquiler
+                      </span>
+                    {% elif "DIARIO" in pago.cargo.concepto %}
+                      <span class="history-badge badge-diario">
+                        <i class="bi bi-clock-history"></i> Diario
+                      </span>
+                    {% else %}
+                      <span class="history-badge badge-servicio">
+                        <i class="bi bi-receipt"></i> {{ pago.cargo.concepto }}
+                      </span>
+                    {% endif %}
+                  {% else %}
+                    <span class="history-badge badge-servicio">Sin cargo</span>
+                  {% endif %}
+                </div>
+
+                <div class="history-main">
+                  <div class="history-name">{{ pago.contrato.inquilino.nombre }}</div>
+                  <div class="history-property">{{ pago.contrato.propiedad.tipo }} - {{ pago.contrato.propiedad.numero }}</div>
+                </div>
+
+                <div class="history-info">
+                  <div><strong>ID pago:</strong> #{{ pago.id }}</div>
+                  <div><strong>Periodo:</strong> {{ pago.cargo.periodo if pago.cargo else '-' }}</div>
+                  <div><strong>Fecha:</strong> {{ pago.fecha_pago }}</div>
+                  <div><strong>Método:</strong> {{ pago.metodo }}</div>
+                  <div><strong>Monto:</strong> S/ {{ "%.2f"|format(pago.monto or 0) }}</div>
+                </div>
+              </div>
+
+              <div class="history-actions">
+                <a href="/pagos/{{ pago.id }}/recibo.pdf?formato=a4"
+                   target="_blank"
+                   class="history-btn btn-pdf">
+                  A4
+                </a>
+
+                <a href="/pagos/{{ pago.id }}/recibo.pdf?formato=ticket"
+                   target="_blank"
+                   class="history-btn btn-ticket">
+                  Ticket
+                </a>
+
+                <a class="history-btn btn-edit" href="/pagos/{{ pago.id }}/editar">
+                  Editar
+                </a>
+
+                <a class="history-btn btn-wa" href="/whatsapp/recibo/{{ pago.id }}" target="_blank">
+                  WhatsApp
+                </a>
+
+                {% if request.session.get("user_rol") == "Administrador" %}
+                <form action="/pagos/{{ pago.id }}/eliminar"
+                      method="post"
+                      onsubmit="return confirm('¿Eliminar pago #{{ pago.id }}?');"
+                      style="margin:0; grid-column:1 / -1;">
+                  <button class="history-btn btn-delete" type="submit" style="width:100%;">
+                    Eliminar
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-box">
+            No hay pagos registrados todavía.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+(function(){
+  const q = document.getElementById("qPago");
+  const sel = document.getElementById("periodoSelect");
+  const totalPendiente = document.getElementById("totalPendiente");
+  const montoTotal = document.getElementById("monto_total");
+  const fechaPago = document.getElementById("fecha_pago");
+  const contratoHidden = document.getElementById("contrato_id_hidden");
+  const periodoHidden = document.getElementById("periodo_hidden");
+  const btnPagarTodo = document.getElementById("btnPagarTodo");
+  const errMonto = document.getElementById("errMonto");
+  const btnGuardar = document.getElementById("btnGuardarPago");
+  const frm = document.getElementById("frmPagoPeriodo");
+
+  const previewPagoCliente = document.getElementById("previewPagoCliente");
+  const previewPagoPeriodo = document.getElementById("previewPagoPeriodo");
+  const previewPagoPendiente = document.getElementById("previewPagoPendiente");
+  const previewPagoMonto = document.getElementById("previewPagoMonto");
+
+  function getPendienteActual(){
+    const opt = sel?.options[sel.selectedIndex];
+    return parseFloat(opt?.dataset?.pendiente || "0");
+  }
+
+  function syncHidden(){
+    const opt = sel?.options[sel.selectedIndex];
+    if(!opt) return;
+    contratoHidden.value = opt.dataset.contrato || "";
+    periodoHidden.value = opt.dataset.periodo || "";
+  }
+
+  function refreshPanel(){
+    const opt = sel?.options[sel.selectedIndex];
+    const pendiente = getPendienteActual();
+
+    if (totalPendiente) totalPendiente.value = "S/ " + pendiente.toFixed(2);
+    syncHidden();
+    validateMonto();
+
+    if(previewPagoCliente){
+      previewPagoCliente.textContent = opt ? opt.text.split("|")[0].trim() : "Cliente / contrato";
+    }
+    if(previewPagoPeriodo){
+      previewPagoPeriodo.textContent = opt ? "Periodo: " + (opt.dataset.periodo || "-") : "Periodo pendiente";
+    }
+    if(previewPagoPendiente){
+      previewPagoPendiente.textContent = "Total pendiente: S/ " + pendiente.toFixed(2);
+    }
+    if(previewPagoMonto){
+      const monto = parseFloat(montoTotal?.value || "0");
+      previewPagoMonto.textContent = "Monto a pagar: S/ " + monto.toFixed(2);
+    }
+  }
+
+  function validateMonto(){
+    const pendiente = getPendienteActual();
+    const monto = parseFloat(montoTotal?.value || "0");
+    const bad = monto > pendiente + 0.0001 || monto <= 0;
+
+    if(errMonto && montoTotal && btnGuardar){
+      if(bad){
+        errMonto.classList.remove("d-none");
+        montoTotal.classList.add("is-invalid");
+        btnGuardar.disabled = true;
+      }else{
+        errMonto.classList.add("d-none");
+        montoTotal.classList.remove("is-invalid");
+        btnGuardar.disabled = false;
+      }
+    }
+
+    if(previewPagoMonto){
+      previewPagoMonto.textContent = "Monto a pagar: S/ " + (monto > 0 ? monto.toFixed(2) : "0.00");
+    }
+  }
+
+  function filterOptions(){
+    if(!sel) return;
+
+    const needle = (q?.value || "").toLowerCase().trim();
+    const options = Array.from(sel.options);
+
+    options.forEach(opt => {
+      const txt = [
+        opt.dataset.nombre || "",
+        opt.dataset.dni || "",
+        opt.dataset.prop || "",
+        opt.dataset.periodo || ""
+      ].join(" ").toLowerCase();
+
+      opt.hidden = !!needle && !txt.includes(needle);
+    });
+
+    const firstVisible = options.find(o => !o.hidden);
+    if(firstVisible){
+      sel.value = firstVisible.value;
+    }
+    refreshPanel();
+  }
+
+  btnPagarTodo?.addEventListener("click", () => {
+    if(montoTotal){
+      montoTotal.value = getPendienteActual().toFixed(2);
+      validateMonto();
+    }
+  });
+
+  sel?.addEventListener("change", refreshPanel);
+  q?.addEventListener("input", filterOptions);
+  montoTotal?.addEventListener("input", validateMonto);
+
+  frm?.addEventListener("submit", (e) => {
+    validateMonto();
+    if(btnGuardar?.disabled){
+      e.preventDefault();
+    }
+  });
+
+  if(fechaPago && !fechaPago.value){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    fechaPago.value = `${y}-${m}-${dd}`;
+  }
+
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get("q");
+    if(v && q){
+      q.value = v;
+      filterOptions();
+    }
+  })();
+
+  refreshPanel();
+})();
+
+(function(){
+  const cards = Array.from(document.querySelectorAll(".pagoRow"));
+  const contador = document.getElementById("contadorPagos");
+
+  function actualizarContador(){
+    if(contador){
+      contador.textContent = `Mostrando ${cards.length} pagos registrados`;
+    }
+  }
+
+  actualizarContador();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+{% block title %}Propiedades | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .summary-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .summary-card .label{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    letter-spacing:.4px;
+  }
+
+  .summary-card .value{
+    margin-top:8px;
+    font-size:28px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .property-layout{
+    display:grid;
+    grid-template-columns:360px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .property-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
+    gap:18px;
+  }
+
+  .property-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    overflow:hidden;
+    transition:.2s ease;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .property-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 16px 28px rgba(0,0,0,.14);
+  }
+
+  .property-top{
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,.10), transparent 30%),
+      linear-gradient(180deg,#1f2937 0%,#111827 100%);
+    color:#fff;
+    padding:18px 16px;
+    min-height:190px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+
+  .property-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.4px;
+    width:max-content;
+  }
+
+  .badge-libre{
+    background:#16a34a;
+    color:#fff;
+  }
+
+  .badge-ocupado{
+    background:#dc2626;
+    color:#fff;
+  }
+
+  .badge-revision{
+    background:#f59e0b;
+    color:#111827;
+  }
+
+  .property-number{
+    font-size:42px;
+    font-weight:900;
+    text-align:center;
+    line-height:1;
+    margin:10px 0 4px;
+  }
+
+  .property-type{
+    text-align:center;
+    font-size:16px;
+    font-weight:800;
+    color:#e5e7eb;
+  }
+
+  .property-info{
+    margin-top:14px;
+    font-size:13px;
+    color:#d1d5db;
+    line-height:1.5;
+  }
+
+  .property-info strong{
+    color:#fff;
+  }
+
+  .property-actions{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+    padding:12px;
+    background:#fff;
+    border-top:1px solid #f1f5f9;
+  }
+
+  .property-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    border:none;
+    border-radius:12px;
+    padding:10px 8px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+  }
+
+  .btn-view{
+    background:#111827;
+    color:#fff;
+  }
+
+  .btn-edit{
+    background:#f59e0b;
+    color:#111827;
+  }
+
+  .btn-delete{
+    background:#fee2e2;
+    color:#991b1b;
+    border:1px solid #fecaca;
+  }
+
+  .search-box{
+    margin-bottom:16px;
+  }
+
+  .empty-box{
+    border:2px dashed #d1d5db;
+    border-radius:16px;
+    padding:28px 20px;
+    text-align:center;
+    color:#6b7280;
+    background:#f9fafb;
+    font-weight:700;
+  }
+
+  @media (max-width: 992px){
+    .property-layout{
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (max-width: 640px){
+    .property-actions{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Gestión de Propiedades</h1>
+      <p>Administra habitaciones, cuartos, departamentos, locales y cocheras.</p>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Total propiedades</div>
+      <div class="value">{{ propiedades|length }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Libres</div>
+      <div class="value">
+        {{ propiedades | selectattr("estado", "equalto", "libre") | list | length }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Ocupadas</div>
+      <div class="value">
+        {{ propiedades | selectattr("estado", "equalto", "ocupado") | list | length }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">En revisión</div>
+      <div class="value">
+        {{ propiedades | selectattr("estado", "equalto", "revision") | list | length }}
+      </div>
+    </div>
+  </div>
+
+  <div class="property-layout">
+
+    <!-- FORMULARIO -->
+    <div class="card-pro">
+  <div class="card-header">
+    <i class="bi bi-plus-circle me-2"></i> Registrar Propiedad
+  </div>
+
+  <div class="card-body">
+    <div class="mb-3 p-3" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;">
+      <div style="font-weight:800;color:#111827;">¿Qué estás registrando?</div>
+      <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+        Ingresa los datos básicos de la unidad para que aparezca en el sistema y pueda usarse en contratos, pagos y dashboard.
+      </div>
+    </div>
+
+    <form action="/propiedades/crear" method="post" class="row g-3" id="formPropiedad">
+
+      <div class="col-12">
+        <label class="form-label fw-bold">Tipo de propiedad</label>
+        <select name="tipo" id="tipoPropiedad" class="form-select" required>
+          <option value="Habitación">Habitación</option>
+          <option value="Cuarto">Cuarto</option>
+          <option value="Departamento">Departamento</option>
+          <option value="Local">Local</option>
+          <option value="Cochera">Cochera</option>
+        </select>
+        <div class="form-text">
+          Selecciona la clase de unidad que deseas administrar.
+        </div>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label fw-bold">Número / Identificador</label>
+        <input name="numero" id="numeroPropiedad" class="form-control" placeholder="Ej: 101, L-01, C-02" required>
+        <div class="form-text">
+          Este nombre será el que verás en el dashboard y en los contratos.
+        </div>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label fw-bold">Precio base mensual</label>
+        <input type="number" step="0.01" name="precio" id="precioPropiedad" class="form-control" placeholder="Ej: 500.00" required>
+        <div class="form-text">
+          Ingresa el monto base que se cobrará por la unidad.
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div style="border:1px dashed #d1d5db;border-radius:14px;padding:14px;background:#fcfcfd;">
+          <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:#6b7280;letter-spacing:.4px;">
+            Vista previa
+          </div>
+          <div style="margin-top:10px;">
+            <div style="font-size:20px;font-weight:900;color:#111827;" id="previewNumero">101</div>
+            <div style="font-size:14px;color:#6b7280;font-weight:700;" id="previewTipo">Habitación</div>
+            <div style="margin-top:6px;font-size:14px;color:#15803d;font-weight:900;" id="previewPrecio">S/ 500.00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 d-flex justify-content-end">
+        <button class="btn btn-credimas">
+          <i class="bi bi-check-circle me-1"></i> Guardar Propiedad
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+    <!-- TARJETAS -->
+    <div>
+      <div class="card-pro">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span><i class="bi bi-buildings me-2"></i> Propiedades registradas</span>
+          <span id="contadorPropiedades" class="text-muted small"></span>
+        </div>
+
+        <div class="card-body">
+          <div class="search-box">
+            <input id="buscarPropiedad" class="form-control" placeholder="Buscar por número, tipo o estado">
+          </div>
+
+          {% if propiedades|length > 0 %}
+          <div class="property-grid" id="gridPropiedades">
+            {% for p in propiedades %}
+            <div class="property-card prop-card"
+                 data-search="{{ (p.tipo or '')|lower }} {{ (p.numero or '')|lower }} {{ (p.estado or '')|lower }}">
+
+              <div class="property-top">
+                <div>
+                  {% if p.estado == "libre" %}
+                    <span class="property-badge badge-libre">
+                      <i class="bi bi-check-circle"></i> Libre
+                    </span>
+                  {% elif p.estado == "revision" %}
+                    <span class="property-badge badge-revision">
+                      <i class="bi bi-tools"></i> Revisión
+                    </span>
+                  {% else %}
+                    <span class="property-badge badge-ocupado">
+                      <i class="bi bi-house-lock"></i> Ocupado
+                    </span>
+                  {% endif %}
+                </div>
+
+                <div>
+                  <div class="property-number">{{ p.numero }}</div>
+                  <div class="property-type">{{ p.tipo }}</div>
+                </div>
+
+                <div class="property-info">
+                  <div><strong>ID:</strong> #{{ p.id }}</div>
+                  <div><strong>Precio:</strong> S/ {{ "%.2f"|format(p.precio) }}</div>
+                </div>
+              </div>
+
+              <div class="property-actions">
+                <a href="/propiedades/{{p.id}}/detalle" class="property-btn btn-view">Ver</a>
+                <a href="/propiedades/{{p.id}}/editar" class="property-btn btn-edit">Editar</a>
+
+                <form action="/propiedades/{{p.id}}/eliminar"
+                      method="post"
+                      onsubmit="return confirm('¿Eliminar propiedad?')"
+                      style="margin:0;">
+                  <button class="property-btn btn-delete" type="submit" style="width:100%;">
+                    Eliminar
+                  </button>
+                </form>
+              </div>
+
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-box">
+            Todavía no hay propiedades registradas.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const inputBuscar = document.getElementById("buscarPropiedad");
+  const cards = Array.from(document.querySelectorAll(".prop-card"));
+  const contador = document.getElementById("contadorPropiedades");
+
+  function actualizarContador(visibles){
+    if(contador){
+      contador.textContent = `Mostrando ${visibles} de ${cards.length} propiedades`;
+    }
+  }
+
+  function filtrar(){
+    const texto = (inputBuscar.value || "").toLowerCase().trim();
+    let visibles = 0;
+
+    cards.forEach(card => {
+      const data = (card.dataset.search || "").toLowerCase();
+      const mostrar = !texto || data.includes(texto);
+      card.style.display = mostrar ? "" : "none";
+      if(mostrar) visibles++;
+    });
+
+    actualizarContador(visibles);
+  }
+
+  if(inputBuscar){
+    inputBuscar.addEventListener("input", filtrar);
+  }
+
+  actualizarContador(cards.length);
+})();
+</script>
+
+{% endblock %}

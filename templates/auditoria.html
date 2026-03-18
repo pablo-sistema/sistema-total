@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Auditoría | CREDIMAS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Auditoría</h1>
+        <p class="page-subtitle">Historial de accesos y cambios realizados en el sistema.</p>
+    </div>
+</div>
+
+<div class="card-pro">
+    <div class="card-header">
+        <i class="bi bi-shield-lock-fill me-2"></i>Bitácora del sistema
+    </div>
+    <div class="card-body">
+        <div class="table-pro">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>Módulo</th>
+                        <th>Detalle</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.created_at }}</td>
+                        <td>{{ log.user.username if log.user else "-" }}</td>
+                        <td>{{ log.action }}</td>
+                        <td>{{ log.module }}</td>
+                        <td>{{ log.detail }}</td>
+                        <td>{{ log.ip or "-" }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No hay movimientos registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

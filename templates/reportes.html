@@ -1,0 +1,604 @@
+{% extends "base.html" %}
+{% block title %}CREDIMAS | Reportes{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .summary-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .summary-card .label{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    letter-spacing:.4px;
+  }
+
+  .summary-card .value{
+    margin-top:8px;
+    font-size:28px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .report-layout{
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .helper-box{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+
+  .mini-kpi{
+    display:grid;
+    gap:12px;
+  }
+
+  .mini-kpi-box{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:14px;
+  }
+
+  .mini-kpi-box .kpi-label{
+    font-size:12px;
+    font-weight:800;
+    color:#6b7280;
+    text-transform:uppercase;
+  }
+
+  .mini-kpi-box .kpi-value{
+    margin-top:6px;
+    font-size:22px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .report-section{
+    margin-bottom:20px;
+  }
+
+  .section-note{
+    font-size:13px;
+    color:#6b7280;
+    margin-bottom:12px;
+  }
+
+  .table-pro table td,
+  .table-pro table th{
+    vertical-align:middle;
+  }
+
+  .amount-positive{
+    color:#15803d;
+    font-weight:900;
+  }
+
+  .amount-negative{
+    color:#dc2626;
+    font-weight:900;
+  }
+
+  .chart-box{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+    padding:16px;
+  }
+
+  @media (max-width: 992px){
+    .report-layout{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Reportes Financieros</h1>
+      <p>Consulta ingresos, gastos, utilidad, deuda pendiente, pagos del día, morosidad y rendimiento por propiedad.</p>
+    </div>
+
+    <div>
+      <a href="/reportes/exportar" class="btn btn-credimas">
+        <i class="bi bi-file-earmark-excel me-1"></i> Exportar Excel
+      </a>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Ingresos hoy</div>
+      <div class="value">S/ {{ "%.2f"|format(ingresos_hoy) }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Ingresos mes</div>
+      <div class="value">S/ {{ "%.2f"|format(ingresos_mes) }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Gastos hoy</div>
+      <div class="value">S/ {{ "%.2f"|format(gastos_hoy) }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Gastos mes</div>
+      <div class="value">S/ {{ "%.2f"|format(gastos_mes) }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Utilidad mes</div>
+      <div class="value {% if utilidad_mes < 0 %}amount-negative{% else %}amount-positive{% endif %}">
+        S/ {{ "%.2f"|format(utilidad_mes) }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Deuda total</div>
+      <div class="value amount-negative">S/ {{ "%.2f"|format(deuda_total) }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Morosos</div>
+      <div class="value">{{ total_morosos }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Cobrado hoy</div>
+      <div class="value amount-positive">S/ {{ "%.2f"|format(total_cobrado_hoy) }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Cuartos que pagaron hoy</div>
+      <div class="value">{{ habitaciones_pagaron_hoy }}</div>
+    </div>
+  </div>
+
+  <div class="report-layout">
+
+    <div>
+      <div class="card-pro report-section">
+        <div class="card-header">
+          <i class="bi bi-funnel me-2"></i> Filtros de reporte
+        </div>
+
+        <div class="card-body">
+          <div class="helper-box">
+            <div style="font-weight:800;color:#111827;">¿Cómo usar este módulo?</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+              Filtra por fecha, propiedad o concepto para revisar pagos, gastos, morosos e ingresos de forma más precisa.
+            </div>
+          </div>
+
+          <form method="get" action="/reportes" class="row g-3 align-items-end">
+            <div class="col-12">
+              <label class="form-label fw-bold">Desde</label>
+              <input type="date" name="desde" class="form-control" value="{{ desde }}">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Hasta</label>
+              <input type="date" name="hasta" class="form-control" value="{{ hasta }}">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Propiedad</label>
+              <select name="propiedad_id" class="form-select">
+                <option value="0">Todas</option>
+                {% for p in propiedades_filtro %}
+                <option value="{{ p.id }}" {% if propiedad_id == p.id %}selected{% endif %}>
+                  {{ p.numero }} - {{ p.tipo }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Concepto</label>
+              <select name="concepto" class="form-select">
+                <option value="">Todos</option>
+                <option value="Agua" {% if concepto == "Agua" %}selected{% endif %}>Agua</option>
+                <option value="Luz" {% if concepto == "Luz" %}selected{% endif %}>Luz</option>
+                <option value="ALQUILER_MENSUAL" {% if concepto == "ALQUILER_MENSUAL" %}selected{% endif %}>Alquiler mensual</option>
+                <option value="ALQUILER_PRORRATA" {% if concepto == "ALQUILER_PRORRATA" %}selected{% endif %}>Alquiler prorrata</option>
+              </select>
+            </div>
+
+            <div class="col-12 d-grid">
+              <button class="btn btn-credimas" type="submit">Aplicar filtros</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card-pro report-section">
+        <div class="card-header">
+          <i class="bi bi-speedometer2 me-2"></i> Resumen del filtro
+        </div>
+        <div class="card-body">
+          <div class="mini-kpi">
+            <div class="mini-kpi-box">
+              <div class="kpi-label">Ingresos del filtro</div>
+              <div class="kpi-value amount-positive">S/ {{ "%.2f"|format(ingresos_filtrados) }}</div>
+            </div>
+
+            <div class="mini-kpi-box">
+              <div class="kpi-label">Gastos del filtro</div>
+              <div class="kpi-value amount-negative">S/ {{ "%.2f"|format(gastos_filtrados) }}</div>
+            </div>
+
+            <div class="mini-kpi-box">
+              <div class="kpi-label">Utilidad del filtro</div>
+              <div class="kpi-value {% if utilidad_filtrada < 0 %}amount-negative{% else %}amount-positive{% endif %}">
+                S/ {{ "%.2f"|format(utilidad_filtrada) }}
+              </div>
+            </div>
+
+            <div class="mini-kpi-box">
+              <div class="kpi-label">Ocupadas</div>
+              <div class="kpi-value">{{ ocupadas }}</div>
+            </div>
+
+            <div class="mini-kpi-box">
+              <div class="kpi-label">Libres</div>
+              <div class="kpi-value">{{ libres }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+
+      <div class="chart-box report-section">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <div>
+            <div style="font-weight:900;color:#111827;">Ingresos vs gastos mensuales</div>
+            <div class="section-note mb-0">Comparativo mensual del comportamiento financiero.</div>
+          </div>
+        </div>
+        <canvas id="chartIngresosMensuales" height="110"></canvas>
+      </div>
+
+      <div class="card-pro report-section">
+        <div class="card-header">Pagos de hoy por cuarto</div>
+        <div class="card-body">
+          <div class="section-note">
+            Aquí ves de forma rápida qué unidades pagaron hoy, cuánto pagaron y por qué concepto.
+          </div>
+          <div class="table-pro">
+            <table class="table mb-0">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Cuarto</th>
+                  <th>Tipo</th>
+                  <th>Inquilino</th>
+                  <th>Concepto</th>
+                  <th>Periodo</th>
+                  <th>Monto</th>
+                  <th>Método</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in pagos_hoy_detallados %}
+                <tr>
+                  <td>{{ item.fecha }}</td>
+                  <td>{{ item.habitacion }}</td>
+                  <td>{{ item.tipo }}</td>
+                  <td>{{ item.inquilino }}</td>
+                  <td>{{ item.concepto }}</td>
+                  <td>{{ item.periodo }}</td>
+                  <td class="amount-positive">S/ {{ "%.2f"|format(item.monto) }}</td>
+                  <td>{{ item.metodo }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="8" class="text-center text-muted">
+                    Hoy no hay pagos registrados.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-pro report-section">
+        <div class="card-header">Ingresos por concepto</div>
+        <div class="card-body">
+          <div class="section-note">
+            Distribución de cobros según alquiler, agua, luz y otros conceptos.
+          </div>
+          <div class="table-pro">
+            <table class="table mb-0">
+              <thead>
+                <tr>
+                  <th>Concepto</th>
+                  <th>Total cobrado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in ingresos_por_concepto %}
+                <tr>
+                  <td>{{ item.concepto }}</td>
+                  <td class="amount-positive">S/ {{ "%.2f"|format(item.total) }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-pro report-section">
+        <div class="card-header">Gastos por categoría</div>
+        <div class="card-body">
+          <div class="section-note">
+            Distribución de egresos según mantenimiento, servicios, compras y otros gastos.
+          </div>
+          <div class="table-pro">
+            <table class="table mb-0">
+              <thead>
+                <tr>
+                  <th>Categoría</th>
+                  <th>Total gastado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in gastos_por_categoria %}
+                <tr>
+                  <td>{{ item.categoria }}</td>
+                  <td class="amount-negative">S/ {{ "%.2f"|format(item.total) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="2" class="text-center text-muted">
+                    No hay gastos registrados para ese filtro.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-pro report-section">
+        <div class="card-header">Historial de pagos por cuarto</div>
+        <div class="card-body">
+          <div class="section-note">
+            Reporte histórico de pagos según los filtros aplicados.
+          </div>
+          <div class="table-pro">
+            <table class="table mb-0">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Cuarto</th>
+                  <th>Tipo</th>
+                  <th>Inquilino</th>
+                  <th>Concepto</th>
+                  <th>Periodo</th>
+                  <th>Monto</th>
+                  <th>Método</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in pagos_detallados %}
+                <tr>
+                  <td>{{ item.fecha }}</td>
+                  <td>{{ item.habitacion }}</td>
+                  <td>{{ item.tipo }}</td>
+                  <td>{{ item.inquilino }}</td>
+                  <td>{{ item.concepto }}</td>
+                  <td>{{ item.periodo }}</td>
+                  <td class="amount-positive">S/ {{ "%.2f"|format(item.monto) }}</td>
+                  <td>{{ item.metodo }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="8" class="text-center text-muted">
+                    No hay pagos registrados para ese filtro.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-pro report-section">
+        <div class="card-header">Lista de morosos</div>
+        <div class="card-body">
+          <div class="section-note">
+            Unidades con deuda vencida o saldo pendiente por regularizar.
+          </div>
+          <div class="table-pro">
+            <table class="table mb-0">
+              <thead>
+                <tr>
+                  <th>Habitación</th>
+                  <th>Tipo</th>
+                  <th>Inquilino</th>
+                  <th>Concepto</th>
+                  <th>Periodo</th>
+                  <th>Vencimiento</th>
+                  <th>Saldo</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in lista_morosos %}
+                <tr>
+                  <td>{{ item.habitacion }}</td>
+                  <td>{{ item.tipo }}</td>
+                  <td>{{ item.inquilino }}</td>
+                  <td>{{ item.concepto }}</td>
+                  <td>{{ item.periodo }}</td>
+                  <td>{{ item.vencimiento }}</td>
+                  <td class="amount-negative">S/ {{ "%.2f"|format(item.saldo) }}</td>
+                  <td><span class="badge-soft danger">{{ item.estado }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="8" class="text-center text-muted">No hay morosos registrados.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-pro report-section">
+        <div class="card-header">Resumen por propiedad</div>
+        <div class="card-body">
+          <div class="section-note">
+            Resumen general de lo cobrado, gastado y pendiente por cada unidad.
+          </div>
+          <div class="table-pro">
+            <table class="table mb-0">
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Tipo</th>
+                  <th>Estado</th>
+                  <th>Total cobrado</th>
+                  <th>Total gastos</th>
+                  <th>Total pendiente</th>
+                  <th>Estado financiero</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in resumen_propiedades %}
+                <tr>
+                  <td>{{ item.numero }}</td>
+                  <td>{{ item.tipo }}</td>
+                  <td>{{ item.estado }}</td>
+                  <td class="amount-positive">S/ {{ "%.2f"|format(item.total_cobrado) }}</td>
+                  <td class="amount-negative">S/ {{ "%.2f"|format(item.total_gastos) }}</td>
+                  <td class="{% if item.total_pendiente > 0 %}amount-negative{% else %}amount-positive{% endif %}">
+                    S/ {{ "%.2f"|format(item.total_pendiente) }}
+                  </td>
+                  <td>
+                    {% if item.total_pendiente > 0 %}
+                      <span class="badge-soft danger">Con deuda</span>
+                    {% else %}
+                      <span class="badge-soft success">Al día</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const labelsMensuales = {{ (chart_labels | default([], true)) | tojson }};
+  const dataIngresos = {{ (chart_values | default([], true)) | tojson }};
+  const dataGastos = {{ (chart_gastos_values | default([], true)) | tojson }};
+
+  const ctxMensual = document.getElementById('chartIngresosMensuales');
+
+  if (ctxMensual && labelsMensuales.length > 0) {
+    new Chart(ctxMensual, {
+      type: 'bar',
+      data: {
+        labels: labelsMensuales,
+        datasets: [
+          {
+            label: 'Ingresos mensuales',
+            data: dataIngresos,
+            borderWidth: 1,
+            borderRadius: 8
+          },
+          {
+            label: 'Gastos mensuales',
+            data: dataGastos,
+            borderWidth: 1,
+            borderRadius: 8
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

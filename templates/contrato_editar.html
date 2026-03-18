@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+{% block title %}Editar Contrato | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .summary-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .summary-card .label{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    letter-spacing:.4px;
+  }
+
+  .summary-card .value{
+    margin-top:8px;
+    font-size:22px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .edit-layout{
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .helper-box{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+
+  .preview-wrap{
+    position:sticky;
+    top:90px;
+  }
+
+  .contract-card-preview{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    overflow:hidden;
+  }
+
+  .contract-preview-top{
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,.10), transparent 30%),
+      linear-gradient(180deg,#1f2937 0%,#111827 100%);
+    color:#fff;
+    padding:20px 18px;
+    min-height:255px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+
+  .contract-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.4px;
+    width:max-content;
+  }
+
+  .badge-mensual{
+    background:#16a34a;
+    color:#fff;
+  }
+
+  .badge-diario{
+    background:#f59e0b;
+    color:#111827;
+  }
+
+  .badge-activo{
+    background:#2563eb;
+    color:#fff;
+  }
+
+  .badge-inactivo{
+    background:#dc2626;
+    color:#fff;
+  }
+
+  .contract-title{
+    font-size:28px;
+    font-weight:900;
+    line-height:1.1;
+    margin-top:14px;
+  }
+
+  .contract-subtitle{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+    font-weight:700;
+  }
+
+  .contract-info{
+    margin-top:14px;
+    font-size:13px;
+    color:#d1d5db;
+    line-height:1.7;
+  }
+
+  .contract-info strong{
+    color:#fff;
+  }
+
+  .contract-preview-bottom{
+    padding:14px 16px;
+    background:#fff;
+    border-top:1px solid #f1f5f9;
+  }
+
+  .preview-note{
+    font-size:13px;
+    color:#6b7280;
+    line-height:1.5;
+  }
+
+  @media (max-width: 992px){
+    .edit-layout{
+      grid-template-columns:1fr;
+    }
+
+    .preview-wrap{
+      position:relative;
+      top:auto;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Editar Contrato #{{ c.id }}</h1>
+      <p>Actualiza los datos del contrato, la unidad, el cliente y la modalidad de alquiler.</p>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-soft" href="/contratos">
+        <i class="bi bi-arrow-left me-1"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Inquilino actual</div>
+      <div class="value">{{ c.inquilino.nombre if c.inquilino else "-" }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Propiedad actual</div>
+      <div class="value">
+        {% if c.propiedad %}{{ c.propiedad.tipo }} {{ c.propiedad.numero }}{% else %}-{% endif %}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Tipo alquiler</div>
+      <div class="value">{{ c.tipo_alquiler or "-" }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Monto actual</div>
+      <div class="value">S/ {{ "%.2f"|format(c.monto_mensual or 0) }}</div>
+    </div>
+  </div>
+
+  <div class="edit-layout">
+
+    <!-- FORMULARIO -->
+    <div>
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-pencil-square me-2"></i> Formulario de edición
+        </div>
+
+        <div class="card-body">
+          <div class="helper-box">
+            <div style="font-weight:800;color:#111827;">¿Qué puedes cambiar aquí?</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+              Puedes actualizar el cliente, la unidad, la modalidad, las fechas, el monto y el estado del contrato. La vista previa se actualizará automáticamente.
+            </div>
+          </div>
+
+          <form class="row g-3" action="/contratos/{{c.id}}/actualizar" method="post">
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Inquilino</label>
+              <select class="form-select" id="editInquilino" name="inquilino_id" required>
+                {% for i in inquilinos %}
+                  <option
+                    value="{{ i.id }}"
+                    data-nombre="{{ i.nombre }}"
+                    data-dni="{{ i.dni }}"
+                    {% if i.id == c.inquilino_id %}selected{% endif %}>
+                    {{ i.nombre }} ({{ i.dni }})
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">Selecciona el cliente asociado al contrato.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Propiedad</label>
+              <select class="form-select" id="editPropiedad" name="propiedad_id" required>
+                {% for p in propiedades %}
+                  <option
+                    value="{{ p.id }}"
+                    data-tipo="{{ p.tipo }}"
+                    data-numero="{{ p.numero }}"
+                    data-estado="{{ p.estado }}"
+                    {% if p.id == c.propiedad_id %}selected{% endif %}>
+                    {{ p.tipo }} - {{ p.numero }} ({{ p.estado }})
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">Si cambias de propiedad, la anterior se libera y la nueva se ocupa.</div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Tipo de alquiler</label>
+              <select class="form-select" id="editTipoAlquiler" name="tipo_alquiler" required>
+                <option value="mensual" {% if c.tipo_alquiler != "diario" %}selected{% endif %}>Mensual</option>
+                <option value="diario" {% if c.tipo_alquiler == "diario" %}selected{% endif %}>Diario</option>
+              </select>
+              <div class="form-text">Define si el contrato es mensual o diario.</div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Fecha inicio</label>
+              <input class="form-control" id="editFechaInicio" type="date" name="fecha_inicio" value="{{ c.fecha_inicio }}" required>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Fecha fin</label>
+              <input class="form-control" id="editFechaFin" type="date" name="fecha_fin" value="{{ c.fecha_fin }}" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Monto mensual (S/)</label>
+              <input class="form-control" id="editMonto" type="number" step="0.01" min="0" name="monto_mensual" value="{{ c.monto_mensual or 0 }}" required>
+              <div class="form-text">Monto base para el cálculo del contrato.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Estado</label>
+              <select class="form-select" id="editEstado" name="estado" required>
+                <option value="Activo" {% if c.estado == "Activo" %}selected{% endif %}>Activo</option>
+                <option value="Inactivo" {% if c.estado != "Activo" %}selected{% endif %}>Inactivo</option>
+              </select>
+              <div class="form-text">Controla si el contrato sigue vigente en operación.</div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end gap-2 flex-wrap">
+              <button class="btn btn-credimas" type="submit">
+                <i class="bi bi-check2-circle me-1"></i> Guardar cambios
+              </button>
+              <a class="btn btn-soft" href="/contratos">
+                <i class="bi bi-x-circle me-1"></i> Cancelar
+              </a>
+              <a class="btn btn-soft" href="/contratos/{{ c.id }}/detalle">
+                <i class="bi bi-eye me-1"></i> Ver detalle
+              </a>
+              <a class="btn btn-soft" href="/contratos/{{ c.id }}/contrato.pdf" target="_blank">
+                <i class="bi bi-filetype-pdf me-1"></i> PDF
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA PREVIA -->
+    <div class="preview-wrap">
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-eye me-2"></i> Vista previa
+        </div>
+
+        <div class="card-body">
+          <div class="contract-card-preview">
+            <div class="contract-preview-top">
+              <div class="d-flex gap-2 flex-wrap">
+                <span id="previewTipoBadge" class="contract-badge {% if c.tipo_alquiler == 'diario' %}badge-diario{% else %}badge-mensual{% endif %}">
+                  {% if c.tipo_alquiler == 'diario' %}
+                    <i class="bi bi-clock-history"></i> Diario
+                  {% else %}
+                    <i class="bi bi-calendar-event"></i> Mensual
+                  {% endif %}
+                </span>
+
+                <span id="previewEstadoBadge" class="contract-badge {% if c.estado == 'Activo' %}badge-activo{% else %}badge-inactivo{% endif %}">
+                  {% if c.estado == 'Activo' %}
+                    <i class="bi bi-check-circle"></i> Activo
+                  {% else %}
+                    <i class="bi bi-x-circle"></i> Inactivo
+                  {% endif %}
+                </span>
+              </div>
+
+              <div>
+                <div class="contract-title" id="previewInquilino">
+                  {{ c.inquilino.nombre if c.inquilino else "Inquilino" }}
+                </div>
+                <div class="contract-subtitle" id="previewPropiedad">
+                  {% if c.propiedad %}{{ c.propiedad.tipo }} {{ c.propiedad.numero }}{% else %}Propiedad{% endif %}
+                </div>
+              </div>
+
+              <div class="contract-info">
+                <div><strong>DNI:</strong> <span id="previewDni">{{ c.inquilino.dni if c.inquilino else "-" }}</span></div>
+                <div><strong>Monto:</strong> <span id="previewMonto">S/ {{ "%.2f"|format(c.monto_mensual or 0) }}</span></div>
+                <div><strong>Inicio:</strong> <span id="previewInicio">{{ c.fecha_inicio }}</span></div>
+                <div><strong>Fin:</strong> <span id="previewFin">{{ c.fecha_fin }}</span></div>
+                <div><strong>Estado propiedad:</strong> <span id="previewEstadoPropiedad">{{ c.propiedad.estado if c.propiedad else "-" }}</span></div>
+              </div>
+            </div>
+
+            <div class="contract-preview-bottom">
+              <div class="preview-note">
+                Así se verá la ficha general del contrato después de guardar los cambios.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+(function(){
+  const inquilino = document.getElementById("editInquilino");
+  const propiedad = document.getElementById("editPropiedad");
+  const tipoAlquiler = document.getElementById("editTipoAlquiler");
+  const fechaInicio = document.getElementById("editFechaInicio");
+  const fechaFin = document.getElementById("editFechaFin");
+  const monto = document.getElementById("editMonto");
+  const estado = document.getElementById("editEstado");
+
+  const previewInquilino = document.getElementById("previewInquilino");
+  const previewPropiedad = document.getElementById("previewPropiedad");
+  const previewDni = document.getElementById("previewDni");
+  const previewMonto = document.getElementById("previewMonto");
+  const previewInicio = document.getElementById("previewInicio");
+  const previewFin = document.getElementById("previewFin");
+  const previewEstadoPropiedad = document.getElementById("previewEstadoPropiedad");
+  const previewTipoBadge = document.getElementById("previewTipoBadge");
+  const previewEstadoBadge = document.getElementById("previewEstadoBadge");
+
+  function actualizarPreview(){
+    const inqOpt = inquilino?.options[inquilino.selectedIndex];
+    const propOpt = propiedad?.options[propiedad.selectedIndex];
+
+    const nombre = inqOpt?.dataset?.nombre || "Inquilino";
+    const dni = inqOpt?.dataset?.dni || "-";
+    const propTipo = propOpt?.dataset?.tipo || "Propiedad";
+    const propNumero = propOpt?.dataset?.numero || "";
+    const propEstado = propOpt?.dataset?.estado || "-";
+    const tipo = tipoAlquiler?.value || "mensual";
+    const inicio = fechaInicio?.value || "-";
+    const fin = fechaFin?.value || "-";
+    const montoVal = parseFloat(monto?.value || "0");
+    const estadoVal = estado?.value || "Activo";
+
+    if(previewInquilino) previewInquilino.textContent = nombre;
+    if(previewDni) previewDni.textContent = dni;
+    if(previewPropiedad) previewPropiedad.textContent = `${propTipo} ${propNumero}`.trim();
+    if(previewMonto) previewMonto.textContent = `S/ ${montoVal.toFixed(2)}`;
+    if(previewInicio) previewInicio.textContent = inicio;
+    if(previewFin) previewFin.textContent = fin;
+    if(previewEstadoPropiedad) previewEstadoPropiedad.textContent = propEstado;
+
+    if(previewTipoBadge){
+      previewTipoBadge.className = "contract-badge";
+      if(tipo === "diario"){
+        previewTipoBadge.classList.add("badge-diario");
+        previewTipoBadge.innerHTML = '<i class="bi bi-clock-history"></i> Diario';
+      } else {
+        previewTipoBadge.classList.add("badge-mensual");
+        previewTipoBadge.innerHTML = '<i class="bi bi-calendar-event"></i> Mensual';
+      }
+    }
+
+    if(previewEstadoBadge){
+      previewEstadoBadge.className = "contract-badge";
+      if(estadoVal === "Activo"){
+        previewEstadoBadge.classList.add("badge-activo");
+        previewEstadoBadge.innerHTML = '<i class="bi bi-check-circle"></i> Activo';
+      } else {
+        previewEstadoBadge.classList.add("badge-inactivo");
+        previewEstadoBadge.innerHTML = '<i class="bi bi-x-circle"></i> Inactivo';
+      }
+    }
+  }
+
+  if(inquilino) inquilino.addEventListener("change", actualizarPreview);
+  if(propiedad) propiedad.addEventListener("change", actualizarPreview);
+  if(tipoAlquiler) tipoAlquiler.addEventListener("change", actualizarPreview);
+  if(fechaInicio) fechaInicio.addEventListener("input", actualizarPreview);
+  if(fechaFin) fechaFin.addEventListener("input", actualizarPreview);
+  if(monto) monto.addEventListener("input", actualizarPreview);
+  if(estado) estado.addEventListener("change", actualizarPreview);
+
+  actualizarPreview();
+})();
+</script>
+{% endblock %}

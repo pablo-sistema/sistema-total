@@ -1,0 +1,2150 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .dashboard-board{ padding:4px 0 10px; }
+
+    .board-header{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:18px;
+        flex-wrap:wrap;
+        margin-bottom:22px;
+    }
+
+    .board-title h1{
+        margin:0;
+        font-size:40px;
+        line-height:1.05;
+        font-weight:900;
+        color:#7f1d1d;
+        letter-spacing:-1px;
+    }
+
+    .board-title p{
+        margin:8px 0 0;
+        color:#6b7280;
+        font-size:14px;
+    }
+
+    .board-stats{
+        display:grid;
+        grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+        gap:12px;
+        width:100%;
+    }
+
+    .stat-box{
+        background:#ffffff;
+        border:1px solid #e5e7eb;
+        border-radius:16px;
+        padding:14px 16px;
+        box-shadow:0 6px 16px rgba(0,0,0,0.06);
+        min-width:0;
+        cursor:pointer;
+        transition:.2s ease;
+    }
+
+    .stat-box:hover{
+        transform:translateY(-2px);
+        box-shadow:0 10px 20px rgba(0,0,0,0.10);
+    }
+
+    .stat-box.active{
+        border-color:#b91c1c;
+        box-shadow:0 0 0 3px rgba(185,28,28,0.08);
+        background:#fff7f7;
+    }
+
+    .stat-box .label{
+        font-size:11px;
+        font-weight:800;
+        color:#6b7280;
+        text-transform:uppercase;
+        letter-spacing:.5px;
+    }
+
+    .stat-box .value{
+        margin-top:6px;
+        font-size:18px;
+        font-weight:900;
+        color:#111827;
+    }
+
+    .filters-bar{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:18px;
+        padding:14px;
+        box-shadow:0 8px 18px rgba(0,0,0,0.05);
+        margin-bottom:18px;
+        display:grid;
+        grid-template-columns:1.2fr 1fr 1fr auto;
+        gap:12px;
+        align-items:end;
+    }
+
+    .filter-group{
+        display:flex;
+        flex-direction:column;
+        gap:6px;
+    }
+
+    .filter-label{
+        font-size:12px;
+        font-weight:800;
+        color:#6b7280;
+        text-transform:uppercase;
+        letter-spacing:.4px;
+    }
+
+    .filter-input,
+    .filter-select{
+        width:100%;
+        border:1px solid #d1d5db;
+        border-radius:12px;
+        padding:11px 12px;
+        font-size:14px;
+        outline:none;
+        background:#fff;
+    }
+
+    .filter-input:focus,
+    .filter-select:focus{
+        border-color:#b91c1c;
+        box-shadow:0 0 0 3px rgba(185,28,28,0.08);
+    }
+
+    .btn-clear{
+        height:44px;
+        border:none;
+        border-radius:12px;
+        background:#111827;
+        color:#fff;
+        font-weight:800;
+        cursor:pointer;
+        padding:0 16px;
+    }
+
+    .zone-tabs{
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+    }
+
+    .zone-tab{
+        border:none;
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:999px;
+        padding:10px 14px;
+        font-size:13px;
+        font-weight:900;
+        color:#374151;
+        cursor:pointer;
+        box-shadow:0 4px 10px rgba(0,0,0,0.04);
+        transition:.2s ease;
+    }
+
+    .zone-tab:hover{
+        transform:translateY(-1px);
+    }
+
+    .zone-tab.active{
+        background:#b91c1c;
+        color:#fff;
+        border-color:#b91c1c;
+    }
+
+    .zone-panel{
+        display:none;
+        margin-top:10px;
+    }
+
+    .zone-panel.active{
+        display:block;
+    }
+
+    .zone-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        margin-bottom:14px;
+        padding-bottom:8px;
+        border-bottom:2px solid #ead3d3;
+    }
+
+    .zone-title{
+        font-size:22px;
+        font-weight:900;
+        color:#7f1d1d;
+    }
+
+    .zone-count{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:999px;
+        padding:7px 12px;
+        font-size:12px;
+        font-weight:800;
+        color:#374151;
+    }
+
+    .btn-success{
+        background:#22c55e;
+        border:none;
+        color:#fff;
+        font-weight:700;
+        border-radius:10px;
+        padding:8px 14px;
+    }
+
+    .btn-danger{
+        background:#ef4444;
+        border:none;
+        color:#fff;
+        font-weight:700;
+        border-radius:10px;
+        padding:8px 14px;
+    }
+
+    .board-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fill, minmax(235px, 1fr));
+        gap:18px;
+    }
+
+    .room-card{
+        background:#fff;
+        border-radius:18px;
+        overflow:hidden;
+        border:1px solid #e5e7eb;
+        box-shadow:0 8px 20px rgba(0,0,0,0.08);
+        transition:.2s ease;
+        display:flex;
+        flex-direction:column;
+        height:100%;
+    }
+
+    .room-card:hover{
+        transform:translateY(-4px);
+        box-shadow:0 18px 34px rgba(0,0,0,0.14);
+    }
+
+    .room-card.hidden{
+        display:none !important;
+    }
+
+    .room-card-top{
+        background:
+            radial-gradient(circle at top left, rgba(255,255,255,0.12), transparent 35%),
+            linear-gradient(180deg, #1f2937 0%, #111827 100%);
+        color:#fff;
+        padding:18px;
+        display:flex;
+        flex-direction:column;
+        gap:6px;
+        flex:1;
+        position:relative;
+        cursor:pointer;
+    }
+
+    .room-badges{
+        display:flex;
+        gap:6px;
+        flex-wrap:wrap;
+        margin-bottom:12px;
+        padding-right:20px;
+    }
+
+    .badge-mini{
+        font-size:10px;
+        font-weight:800;
+        padding:5px 10px;
+        border-radius:999px;
+        letter-spacing:.4px;
+    }
+
+    .debt-tag{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:5px 8px;
+        border-radius:999px;
+        font-size:10px;
+        font-weight:900;
+        letter-spacing:.2px;
+    }
+
+    .tag-alquiler{
+        background:#fee2e2;
+        color:#991b1b;
+        border:1px solid #fecaca;
+    }
+
+    .tag-agua{
+        background:#dbeafe;
+        color:#1d4ed8;
+        border:1px solid #bfdbfe;
+    }
+
+    .tag-luz{
+        background:#fef3c7;
+        color:#92400e;
+        border:1px solid #fde68a;
+    }
+
+    .tag-otros{
+        background:#ede9fe;
+        color:#6d28d9;
+        border:1px solid #ddd6fe;
+    }
+
+    .tag-vence{
+        background:#fff7ed;
+        color:#c2410c;
+        border:1px solid #fed7aa;
+    }
+
+    .tag-sin-deuda{
+        background:#dcfce7;
+        color:#166534;
+        border:1px solid #bbf7d0;
+    }
+    .badge-ampliacion{
+    background:#0ea5e9;
+    color:#fff;
+    }
+
+    .badge-moroso{ background:#7f1d1d; color:#fff; }
+    .badge-pronto{ background:#f59e0b; color:#111827; }
+    .badge-parcial{ background:#2563eb; color:#fff; }
+    .badge-libre{ background:#16a34a; color:#fff; }
+    .badge-ocupado{ background:#b91c1c; color:#fff; }
+    .badge-sin-deuda{ background:#0f766e; color:#fff; }
+
+    .room-alert{
+        position:absolute;
+        top:12px;
+        right:12px;
+        width:14px;
+        height:14px;
+        border-radius:50%;
+        background:#ff2d20;
+        box-shadow:0 0 0 4px rgba(255,255,255,0.10);
+    }
+
+    .room-number{
+        text-align:center;
+        font-size:46px;
+        font-weight:900;
+        margin-top:6px;
+    }
+
+    .room-type{
+        text-align:center;
+        font-weight:700;
+        opacity:.9;
+        margin-bottom:10px;
+    }
+
+    .room-info{
+        font-size:13px;
+        color:#e5e7eb;
+    }
+
+    .room-info strong{
+        color:#fff;
+    }
+
+    .room-sep{
+        height:1px;
+        background:rgba(255,255,255,0.12);
+        margin:8px 0;
+    }
+
+    .room-status{
+        text-align:center;
+        padding:10px;
+        font-size:14px;
+        font-weight:800;
+    }
+
+    .estado-libre{ background:#16a34a; }
+    .estado-ocupado{ background:#d62828; }
+    .estado-revision{ background:#f59e0b; color:#111827; }
+    .estado-moroso{ background:#7f1d1d; }
+    .estado-default{ background:#374151; }
+
+    .room-actions{
+        display:grid;
+        grid-template-columns:repeat(3, 1fr);
+        gap:8px;
+        padding:12px;
+        background:#fff;
+    }
+
+    .room-btn{
+        border:none;
+        border-radius:10px;
+        font-size:12px;
+        font-weight:800;
+        padding:9px 6px;
+        cursor:pointer;
+        text-decoration:none;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        transition:.2s;
+    }
+
+    .room-btn:hover{
+        transform:scale(1.04);
+    }
+
+    .btn-detail{ background:#0f172a; color:#fff; }
+    .btn-pay{ background:#16a34a; color:#fff; }
+    .btn-wa{ background:#22c55e; color:#fff; }
+    .btn-pdf{ background:#ef4444; color:#fff; }
+    .btn-contract{ background:#f59e0b; color:#111827; }
+
+    .results-info{
+        margin-top:14px;
+        font-size:13px;
+        color:#6b7280;
+        text-align:right;
+    }
+
+    .no-results{
+        display:none;
+        margin-top:18px;
+        border:2px dashed #d1d5db;
+        border-radius:16px;
+        padding:28px 20px;
+        text-align:center;
+        color:#6b7280;
+        background:#f9fafb;
+        font-weight:700;
+    }
+
+    .no-results.show{
+        display:block;
+    }
+
+    .modal-overlay{
+        position:fixed;
+        inset:0;
+        background:rgba(15,23,42,0.55);
+        display:none;
+        align-items:flex-start;
+        justify-content:center;
+        z-index:9999;
+        padding:20px;
+        overflow-y:auto;
+    }
+
+    .modal-overlay.active{
+        display:flex;
+    }
+
+    .modal-box{
+        width:min(760px, 100%);
+        background:#fff;
+        border-radius:24px;
+        overflow:visible;
+        box-shadow:0 24px 60px rgba(0,0,0,0.28);
+        max-height:calc(100vh - 40px);
+        margin:auto 0;
+    }
+
+    .modal-head{
+        background:linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%);
+        color:#fff;
+        padding:18px 22px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        position:sticky;
+        top:0;
+        z-index:2;
+    }
+
+    .modal-head h3{
+        margin:0;
+        font-size:24px;
+        font-weight:900;
+    }
+
+    .modal-close{
+        background:rgba(255,255,255,0.14);
+        border:none;
+        color:#fff;
+        width:38px;
+        height:38px;
+        border-radius:50%;
+        font-size:20px;
+        cursor:pointer;
+        font-weight:900;
+    }
+
+    .modal-body{
+        padding:22px;
+        max-height:calc(100vh - 140px);
+        overflow-y:auto;
+    }
+
+    .modal-grid{
+        display:grid;
+        grid-template-columns:repeat(2, 1fr);
+        gap:14px;
+    }
+
+    .modal-info{
+        background:#f9fafb;
+        border:1px solid #e5e7eb;
+        border-radius:16px;
+        padding:14px;
+    }
+
+    .modal-info .label{
+        font-size:11px;
+        font-weight:900;
+        text-transform:uppercase;
+        color:#6b7280;
+        margin-bottom:6px;
+        letter-spacing:.5px;
+    }
+
+    .modal-info .value{
+        font-size:15px;
+        font-weight:800;
+        color:#111827;
+        line-height:1.4;
+    }
+
+    .modal-section{
+        margin-top:25px;
+        padding-top:20px;
+        border-top:1px solid #e5e7eb;
+        display:grid;
+        grid-template-columns:repeat(2, 1fr);
+        gap:14px;
+    }
+
+    .modal-actions{
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+        margin-top:18px;
+    }
+
+    .room-info.deuda-linea{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+    }
+
+    .btn-modal{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:12px 16px;
+        border-radius:12px;
+        text-decoration:none;
+        font-weight:900;
+        border:none;
+        cursor:pointer;
+    }
+
+    .deuda-bar{
+        width:100%;
+        height:6px;
+        background:rgba(255,255,255,.15);
+        border-radius:10px;
+        margin-top:4px;
+    }
+
+    .deuda-fill{
+        width:70%;
+        height:6px;
+        background:#ef4444;
+        border-radius:10px;
+    }
+
+    .btn-red{ background:#b91c1c; color:#fff; }
+    .btn-green{ background:#15803d; color:#fff; }
+    .btn-dark{ background:#111827; color:#fff; }
+    .btn-blue{ background:#2563eb; color:#fff; }
+
+    #modalContrato{
+        z-index:2000 !important;
+    }
+
+    #modalNuevoInquilino{
+        display:none;
+        position:fixed !important;
+        inset:0 !important;
+        width:100vw !important;
+        height:100vh !important;
+        align-items:center;
+        justify-content:center;
+        background:rgba(15, 23, 42, 0.45) !important;
+        z-index:99999 !important;
+    }
+
+    #modalNuevoInquilino .modal-box{
+        position:relative !important;
+        z-index:100000 !important;
+        max-width:560px;
+        width:92%;
+    }
+
+    @media (max-width: 980px){
+        .filters-bar,
+        .modal-grid,
+        .modal-section{
+            grid-template-columns:1fr;
+        }
+    }
+
+    @media (max-width: 640px){
+        .board-title h1{ font-size:28px; }
+        .room-actions{ grid-template-columns:1fr; }
+    }
+</style>
+
+<div class="dashboard-board">
+
+    <div class="board-header">
+        <div class="board-title">
+            <h1>Tablero de Ocupación CREDIMAS</h1>
+            <p>Haz clic en una unidad libre para crear contrato o en una ocupada para ver el resumen y registrar pago.</p>
+        </div>
+
+        <div class="board-stats">
+            <div class="stat-box active" id="statTodos" onclick="aplicarFiltroRapido('todos', this)">
+                <div class="label">Propiedades</div>
+                <div class="value">{{ total_propiedades }}</div>
+            </div>
+
+            <div class="stat-box" onclick="aplicarFiltroRapido('ocupado', this)">
+                <div class="label">Ocupadas</div>
+                <div class="value">{{ ocupadas }}</div>
+            </div>
+
+            <div class="stat-box" onclick="aplicarFiltroRapido('libre', this)">
+                <div class="label">Libres</div>
+                <div class="value">{{ libres }}</div>
+            </div>
+
+            <div class="stat-box" onclick="aplicarFiltroRapido('moroso', this)">
+                <div class="label">Morosos</div>
+                <div class="value">{{ morosos }}</div>
+            </div>
+
+            <div class="stat-box" onclick="window.location.href='/reportes'">
+                <div class="label">Ingresos hoy</div>
+                <div class="value">S/ {{ "%.2f"|format(ingresos_hoy) }}</div>
+            </div>
+
+            <div class="stat-box" onclick="window.location.href='/reportes'">
+                <div class="label">Ingresos mes</div>
+                <div class="value">S/ {{ "%.2f"|format(ingresos_mes) }}</div>
+            </div>
+
+            <div class="stat-box" onclick="aplicarFiltroRapido('con_deuda', this)">
+                <div class="label">Deuda total</div>
+                <div class="value">S/ {{ "%.2f"|format(deuda_total) }}</div>
+            </div>
+
+            <div class="stat-box" onclick="window.location.href='/pagos'">
+                <div class="label">Pagos hoy</div>
+                <div class="value">{{ pagos_hoy }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if ok_pago and ultimo_pago_id %}
+    <div class="card-pro mb-4" style="border:1px solid #bbf7d0; background:#f0fdf4;">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <div class="fw-bold text-success">Pago registrado correctamente</div>
+                <div class="text-muted small">
+                    Ya puedes abrir el recibo o enviarlo por WhatsApp.
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="/pagos/{{ ultimo_pago_id }}/recibo.pdf"
+                   target="_blank"
+                   class="btn-modal"
+                   style="background:#dc2626; color:#fff;">
+                    Recibo PDF
+                </a>
+
+                <a href="/pagos/{{ ultimo_pago_id }}/whatsapp"
+                   target="_blank"
+                   class="btn-modal"
+                   style="background:#25D366; color:#fff;">
+                    WhatsApp
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="filters-bar">
+        <div class="filter-group">
+            <label class="filter-label">Buscar</label>
+            <input type="text" id="searchInput" class="filter-input" placeholder="Número o inquilino..." oninput="filtrarTarjetas()">
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Estado</label>
+            <select id="estadoFilter" class="filter-select" onchange="filtrarTarjetas()">
+                <option value="todos">Todos</option>
+                <option value="libre">Libre</option>
+                <option value="ocupado">Ocupado</option>
+                <option value="moroso">Moroso</option>
+                <option value="revision">Revisión</option>
+                <option value="con_deuda">Con deuda</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label class="filter-label">Modalidad</label>
+            <select id="modalidadFilter" class="filter-select" onchange="filtrarTarjetas()">
+                <option value="todos">Todos</option>
+                <option value="mensual">Mensual</option>
+                <option value="diario">Diario</option>
+                <option value="noche">Noche</option>
+                <option value="-">Sin modalidad</option>
+            </select>
+        </div>
+        <button class="btn-clear" type="button" onclick="limpiarFiltros()">Limpiar</button>
+    </div>
+
+    <div class="zone-tabs">
+        {% for grupo in grupos_tablero %}
+            <button
+                class="zone-tab {% if loop.first %}active{% endif %}"
+                type="button"
+                data-zone-btn="{{ grupo }}"
+                onclick="cambiarZona('{{ grupo }}', this)"
+            >
+                {{ grupo }}
+            </button>
+        {% endfor %}
+    </div>
+
+    {% for grupo in grupos_tablero %}
+        <div class="zone-panel {% if loop.first %}active{% endif %}" data-zone-panel="{{ grupo }}">
+            <div class="zone-header">
+                <div class="zone-title">{{ grupo }}</div>
+                <div class="zone-count">{{ propiedades_tablero | selectattr('grupo', 'equalto', grupo) | list | length }} unidad(es)</div>
+            </div>
+
+            <div class="board-grid">
+                {% for p in propiedades_tablero if p.grupo == grupo %}
+                    {% set clase_estado = "estado-default" %}
+                    {% set texto_estado = p.estado|capitalize %}
+                    {% set estado_data = p.estado %}
+
+                    {% if p.moroso %}
+                        {% set clase_estado = "estado-moroso" %}
+                        {% set texto_estado = "Moroso" %}
+                        {% set estado_data = "moroso" %}
+                    {% elif p.estado == "libre" %}
+                        {% set clase_estado = "estado-libre" %}
+                        {% set texto_estado = "Libre" %}
+                    {% elif p.estado == "ocupado" %}
+                        {% set clase_estado = "estado-ocupado" %}
+                        {% set texto_estado = "Ocupado" %}
+                    {% elif p.estado == "revision" %}
+                        {% set clase_estado = "estado-revision" %}
+                        {% set texto_estado = "Revisión" %}
+                    {% endif %}
+
+                    <div class="room-card"
+                        data-numero="{{ (p.numero or '')|lower }}"
+                        data-tipo="{{ (p.tipo or '')|lower }}"
+                        data-inquilino="{{ (p.inquilino or 'disponible')|lower }}"
+                        data-estado="{{ estado_data }}"
+                        data-modalidad="{{ (p.tipo_alquiler or '-')|lower }}"
+                        data-grupo="{{ p.grupo }}"
+                        data-deuda="{% if (p.deuda_total or 0) > 0 %}si{% else %}no{% endif %}"
+                        data-ampliacion="{% if p.ampliacion_pendiente %}si{% else %}no{% endif %}">
+
+                        <div class="room-card-top"
+                             onclick="
+                             {% if p.estado == 'libre' %}
+                             abrirModalContrato(
+                                '{{ p.id }}',
+                                '{{ p.numero }}',
+                                '{{ p.tipo }}',
+                                '{{ '%.2f'|format(p.precio or 0) }}'
+                             )
+                             {% else %}
+                             abrirModal(
+                                    '{{ p.id }}',
+                                    '{{ p.numero }}',
+                                    '{{ p.tipo }}',
+                                    '{{ p.estado }}',
+                                    '{{ p.inquilino or 'Disponible' }}',
+                                    '{{ p.tipo_alquiler or '-' }}',
+                                    '{{ '%.2f'|format(p.precio or 0) }}',
+                                    '{{ p.fecha_inicio or '-' }}',
+                                    '{{ p.fecha_fin or '-' }}',
+                                    '{{ '%.2f'|format(p.deuda_total or 0) }}',
+                                    '{{ p.contrato_id or '' }}',
+                                    '{{ (p.periodos_pendientes | join('||')) if p.periodos_pendientes else '' }}',
+                                    '{{ p.ultima_lectura_agua or 0 }}',
+                                    '{{ p.ultima_lectura_luz or 0 }}',
+                                    '{{ p.fecha_lectura_agua or '-' }}',
+                                    '{{ p.fecha_lectura_luz or '-' }}',
+                                    '{{ '%.2f'|format(p.deuda_alquiler or 0) }}',
+                                    '{{ '%.2f'|format(p.deuda_agua or 0) }}',
+                                    '{{ '%.2f'|format(p.deuda_luz or 0) }}',
+                                    '{{ '%.2f'|format(p.deuda_otros or 0) }}',
+                                    '{{ p.ultimo_pago_id or '' }}'
+                                )
+                             {% endif %}
+                             ">
+
+                            {% if p.moroso %}
+                                <div class="room-alert"></div>
+                            {% endif %}
+
+                            <div class="room-badges">
+                                {% if p.estado == "libre" %}
+                                    <span class="badge-mini badge-libre">LIBRE</span>
+                                {% endif %}
+                                {% if p.estado == "ocupado" %}
+                                    <span class="badge-mini badge-ocupado">OCUPADO</span>
+                                {% endif %}
+                                {% if p.moroso %}
+                                    <span class="badge-mini badge-moroso">MOROSO</span>
+                                {% endif %}
+                                {% if p.vence_pronto %}
+                                    <span class="badge-mini badge-pronto">VENCE PRONTO</span>
+                                {% endif %}
+                                {% if p.pago_parcial %}
+                                    <span class="badge-mini badge-parcial">PAGO PARCIAL</span>
+                                {% endif %}
+                                {% if p.ampliacion_pendiente %}
+                                    <span class="badge-mini badge-ampliacion">AMPLIACIÓN</span>
+                                {% endif %}
+                                {% if (not p.moroso) and (not p.pago_parcial) and (p.deuda_total or 0) <= 0 and p.estado != "libre" %}
+                                    <span class="badge-mini badge-sin-deuda">AL DÍA</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="room-number">{{ p.numero }}</div>
+                            <div class="room-type">{{ p.tipo }}</div>
+
+                            <div class="room-info">
+                                <strong>Inquilino:</strong><br>{{ p.inquilino or "Disponible" }}
+                            </div>
+
+                            <div class="room-sep"></div>
+
+                            <div class="room-info">
+                                <strong>Modalidad:</strong> {{ p.tipo_alquiler or "-" }}
+                            </div>
+
+                            <div class="room-info">
+                                <strong>Precio:</strong> S/ {{ "%.2f"|format(p.precio or 0) }}
+                            </div>
+
+                            {% if p.deuda_total and p.deuda_total > 0 %}
+                                <div class="room-info">
+                                    <strong>Total deuda:</strong> S/ {{ "%.2f"|format(p.deuda_total) }}
+                                </div>
+                                <div class="deuda-bar">
+                                    <div class="deuda-fill"></div>
+                                </div>
+
+                                {% if p.deuda_alquiler and p.deuda_alquiler > 0 %}
+                                <div class="room-info">
+                                    <strong>Alquiler:</strong> S/ {{ "%.2f"|format(p.deuda_alquiler) }}
+                                </div>
+                                {% endif %}
+
+                                {% if p.deuda_agua and p.deuda_agua > 0 %}
+                                <div class="room-info">
+                                    <strong>Agua:</strong> S/ {{ "%.2f"|format(p.deuda_agua) }}
+                                </div>
+                                {% endif %}
+
+                                {% if p.deuda_luz and p.deuda_luz > 0 %}
+                                <div class="room-info">
+                                    <strong>Luz:</strong> S/ {{ "%.2f"|format(p.deuda_luz) }}
+                                </div>
+                                {% endif %}
+
+                                {% if p.deuda_otros and p.deuda_otros > 0 %}
+                                <div class="room-info">
+                                    <strong>Otros:</strong> S/ {{ "%.2f"|format(p.deuda_otros) }}
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <div class="room-status {{ clase_estado }}">{{ texto_estado }}</div>
+
+                        <div class="room-actions">
+                            <a href="/propiedades/{{ p.id }}/detalle" class="room-btn btn-detail">Detalle</a>
+
+                            {% if p.contrato_id %}
+                            <a href="/pagos?contrato_id={{ p.contrato_id }}" class="room-btn btn-pay">Pago</a>
+                            {% else %}
+                            <a href="/pagos" class="room-btn btn-pay">Pago</a>
+                            {% endif %}
+
+                            {% if p.ultimo_pago_id %}
+                            <a href="/pagos/{{ p.ultimo_pago_id }}/recibo.pdf?formato=a4"
+                                target="_blank"
+                                class="room-btn btn-pdf">
+                                A4
+                            </a>
+
+                            <a href="/pagos/{{ p.ultimo_pago_id }}/recibo.pdf?formato=ticket"
+                                target="_blank"
+                                class="room-btn btn-wa">
+                                Ticket
+                            </a>
+                            {% else %}
+                            <button type="button" class="room-btn btn-pdf" disabled style="opacity:.5;">A4</button>
+                            <button type="button" class="room-btn btn-wa" disabled style="opacity:.5;">Ticket</button>
+                            {% endif %}
+                            
+                            {% if p.ultimo_pago_id %}
+                            <a href="/pagos/{{ p.ultimo_pago_id }}/whatsapp" target="_blank" class="room-btn btn-wa">WhatsApp</a>
+                            {% else %}
+                            <button type="button" class="room-btn btn-wa" disabled style="opacity:.5;">WhatsApp</button>
+                            {% endif %}
+
+                            {% if p.contrato_id and (p.deuda_total or 0) > 0 %}
+                            <a href="/contratos/{{ p.contrato_id }}/whatsapp_recordatorio" target="_blank" class="room-btn btn-wa">
+                                Cobranza
+                            </a>
+                            {% else %}
+                            <button type="button" class="room-btn btn-wa" disabled style="opacity:.5;">Cobranza</button>
+                            {% endif %}
+
+                            <a href="/contratos" class="room-btn btn-contract">Contrato</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+
+    <div class="results-info" id="resultsInfo"></div>
+    <div class="no-results" id="noResults">No se encontraron unidades con esos filtros.</div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card-pro">
+            <div class="card-body">
+                <div class="text-muted small">Unidades con deuda</div>
+                <div class="fs-5 fw-bold text-danger">{{ unidades_con_deuda }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-pro">
+            <div class="card-body">
+                <div class="text-muted small">Contratos por vencer</div>
+                <div class="fs-5 fw-bold text-warning">{{ contratos_por_vencer }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-pro">
+            <div class="card-body">
+                <div class="text-muted small">Agua pendiente</div>
+                <div class="fs-5 fw-bold text-primary">{{ unidades_con_agua_pendiente }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card-pro">
+            <div class="card-body">
+                <div class="text-muted small">Luz pendiente</div>
+                <div class="fs-5 fw-bold text-warning">{{ unidades_con_luz_pendiente }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-pro mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Cobranza automática</span>
+        <a href="/reportes" class="btn-soft text-decoration-none">Ver reportes</a>
+    </div>
+
+    <div class="card-body">
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card-pro">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">Morosos</div>
+                        <div class="fs-4 fw-bold text-danger">{{ morosos }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card-pro">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">Vencen hoy</div>
+                        <div class="fs-4 fw-bold text-warning">{{ vencen_hoy }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card-pro">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">Pago parcial</div>
+                        <div class="fs-4 fw-bold text-primary">{{ pagos_parciales }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card-pro">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">Al día</div>
+                        <div class="fs-4 fw-bold text-success">{{ al_dia }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-pro">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Cuarto</th>
+                        <th>Tipo</th>
+                        <th>Inquilino</th>
+                        <th>Estado</th>
+                        <th>Deuda total</th>
+                        <th>Detalle</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cobranza_items %}
+                    <tr>
+                        <td>{{ item.habitacion }}</td>
+                        <td>{{ item.tipo }}</td>
+                        <td>{{ item.inquilino }}</td>
+                        <td>
+                            {% if item.estado == "Moroso" %}
+                                <span class="badge-soft danger">{{ item.estado }}</span>
+                            {% elif item.estado == "Vence hoy" %}
+                                <span class="badge-soft warning">{{ item.estado }}</span>
+                            {% elif item.estado == "Pago parcial" %}
+                                <span class="badge-soft info">{{ item.estado }}</span>
+                            {% else %}
+                                <span class="badge-soft gray">{{ item.estado }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold text-danger">S/ {{ "%.2f"|format(item.deuda_total) }}</td>
+                        <td>
+                            Alq: S/ {{ "%.2f"|format(item.deuda_alquiler) }}<br>
+                            Agua: S/ {{ "%.2f"|format(item.deuda_agua) }}<br>
+                            Luz: S/ {{ "%.2f"|format(item.deuda_luz) }}<br>
+                            Otros: S/ {{ "%.2f"|format(item.deuda_otros) }}
+                        </td>
+                        <td>
+                            <a href="/contratos/{{ item.contrato_id }}/whatsapp_recordatorio"
+                               target="_blank"
+                               class="btn-soft text-decoration-none">
+                                Enviar mensaje
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            No hay contratos con deuda pendiente.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if cobranza_items %}
+        <div class="mt-3 d-flex justify-content-end">
+            <button type="button" class="btn btn-credimas" onclick="cobrarTodosMorosos()">
+                📲 Cobrar a todos
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card-pro mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Últimos pagos de hoy</span>
+        <a href="/reportes" class="btn-soft text-decoration-none">
+            Ver reportes
+        </a>
+    </div>
+
+    <div class="card-body">
+        <div class="table-pro">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Cuarto</th>
+                        <th>Tipo</th>
+                        <th>Inquilino</th>
+                        <th>Concepto</th>
+                        <th>Periodo</th>
+                        <th>Monto</th>
+                        <th>Método</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in ultimos_pagos_hoy %}
+                    <tr>
+                        <td>{{ item.habitacion }}</td>
+                        <td>{{ item.tipo }}</td>
+                        <td>{{ item.inquilino }}</td>
+                        <td>{{ item.concepto }}</td>
+                        <td>{{ item.periodo }}</td>
+                        <td class="fw-bold text-success">S/ {{ "%.2f"|format(item.monto) }}</td>
+                        <td>{{ item.metodo }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            Hoy todavía no se registraron pagos.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL OCUPADO -->
+<div id="modalUnidad" class="modal-overlay" onclick="cerrarModal(event)">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3 id="modalTitulo">Unidad</h3>
+            <button class="modal-close" type="button" onclick="cerrarModal()">×</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="modal-info">
+                    <div class="label">Número</div>
+                    <div class="value" id="m_numero">-</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Tipo</div>
+                    <div class="value" id="m_tipo">-</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Estado</div>
+                    <div class="value" id="m_estado">-</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Precio</div>
+                    <div class="value" id="m_precio">-</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Inquilino</div>
+                    <div class="value" id="m_inquilino">-</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Modalidad</div>
+                    <div class="value" id="m_modalidad">-</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Fecha inicio</div>
+                    <div class="value" id="m_inicio">-</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Fecha fin</div>
+                    <div class="value" id="m_fin">-</div>
+                </div>
+
+                <div class="modal-info" style="grid-column:1 / -1;">
+                    <div class="label">Deuda total</div>
+                    <div class="value" id="m_deuda">-</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Alquiler pendiente</div>
+                    <div class="value" id="m_deuda_alquiler">S/ 0.00</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Agua pendiente</div>
+                    <div class="value" id="m_deuda_agua">S/ 0.00</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Luz pendiente</div>
+                    <div class="value" id="m_deuda_luz">S/ 0.00</div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Otros cargos</div>
+                    <div class="value" id="m_deuda_otros">S/ 0.00</div>
+                </div>
+            </div>
+
+            <hr style="margin:18px 0; border:none; border-top:1px solid #e5e7eb;">
+
+            <div class="modal-section">
+                <div class="modal-info">
+                    <div class="label">Última lectura Agua</div>
+                    <div class="value" id="m_lectura_agua">0</div>
+                    <div style="font-size:12px; color:#6b7280;">Fecha: <span id="m_fecha_agua">-</span></div>
+                </div>
+
+                <div class="modal-info">
+                    <div class="label">Última lectura Luz</div>
+                    <div class="value" id="m_lectura_luz">0</div>
+                    <div style="font-size:12px; color:#6b7280;">Fecha: <span id="m_fecha_luz">-</span></div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <a id="btnDetalle" href="#" class="btn-modal btn-red">Ver detalle completo</a>
+
+                <a id="btnReciboPdfA4" href="#" target="_blank"
+                    class="btn-modal"
+                    style="background:#dc2626; color:#fff; display:none;">
+                        Recibo A4
+                </a>
+
+                <a id="btnReciboTicket" href="#" target="_blank"
+                    class="btn-modal"
+                    style="background:#0f766e; color:#fff; display:none;">
+                        Ticket
+                </a>
+
+                <a id="btnWhatsappPago" href="#" target="_blank" class="btn-modal" style="background:#25D366; color:#fff; display:none;">
+                    WhatsApp
+                </a>
+
+                <!-- NUEVO BOTÓN -->
+                <a id="btnWhatsappAmpliacion"
+                href="#"
+                target="_blank"
+                class="btn-modal"
+                style="background:#0ea5e9; color:#fff; display:none;">
+                Cobrar ampliación
+                </a>
+
+                <a href="/contratos" class="btn-modal btn-dark">Ir a contratos</a>
+
+                <a id="btnWhatsappCobranza" href="#" target="_blank" class="btn-modal" style="background:#16a34a; color:#fff; display:none;">
+                    Recordatorio de deuda
+                </a>
+
+                {% if request.session.get("user_rol") == "Administrador" %}
+                <button type="button" class="btn-modal btn-blue" onclick="abrirModalEditarContratoActual()">
+                    Editar contrato
+                </button>
+                {% endif %}
+
+                <form method="post" action="/dashboard/finalizar_contrato"
+                    onsubmit="return confirm('¿Seguro que deseas finalizar este contrato y desocupar la unidad?');"
+                    style="display:inline;">
+                    <input type="hidden" name="contrato_id" id="f_contrato_id">
+                    <button type="submit" class="btn-modal" style="background:#b45309; color:#fff;">
+                        Finalizar contrato
+                    </button>
+                </form>
+            </div>
+
+            <hr style="margin:18px 0; border:none; border-top:1px solid #e5e7eb;">
+
+            <form method="post" action="/dashboard/registrar_lectura" id="formLecturaRapida" onsubmit="return validarLecturaRapida()">
+                <input type="hidden" name="contrato_id" id="l_contrato_id">
+
+                <div class="modal-grid">
+                    <div class="modal-info">
+                        <div class="label">Servicio</div>
+                        <select name="servicio" id="l_servicio"
+                                required class="filter-select"
+                                onchange="actualizarLecturaAnteriorDashboard()">
+                            <option value="Agua">Agua</option>
+                            <option value="Luz">Luz</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Período</div>
+                        <input type="month" name="periodo" id="l_periodo" required class="filter-input">
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Lectura anterior</div>
+                        <input type="number" step="0.01" min="0"
+                               name="lectura_anterior"
+                               id="l_lectura_anterior"
+                               required
+                               class="filter-input">
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Lectura actual</div>
+                        <input type="number" step="0.01" min="0"
+                               name="lectura_actual"
+                               required
+                               class="filter-input">
+                    </div>
+
+                    <div class="modal-info" style="grid-column:1 / -1;">
+                        <div class="label">Tarifa</div>
+                        <input type="number" step="0.01" min="0"
+                               name="tarifa"
+                               required
+                               class="filter-input"
+                               placeholder="Ingrese tarifa por unidad">
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modal btn-dark">
+                        Registrar lectura rápida
+                    </button>
+                </div>
+            </form>
+
+            <hr style="margin:18px 0; border:none; border-top:1px solid #e5e7eb;">
+
+            <form method="post" action="/dashboard/registrar_pago" id="formPagoRapido">
+                <input type="hidden" name="contrato_id" id="p_contrato_id">
+
+                <div class="modal-grid">
+                    <div class="modal-info" style="grid-column:1 / -1;">
+                        <div class="label">Periodo pendiente</div>
+                        <select name="periodo" id="p_periodo" required class="filter-select">
+                            <option value="">Seleccione periodo</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Tipo de pago</div>
+                        <select name="tipo_pago" required class="filter-select">
+                            <option value="todo">Todo</option>
+                            <option value="alquiler">Solo alquiler</option>
+                            <option value="agua">Solo agua</option>
+                            <option value="luz">Solo luz</option>
+                            <option value="otros">Solo otros</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Monto a pagar</div>
+                        <input type="number" step="0.01" min="0.01" name="monto_total" required class="filter-input" placeholder="Ingrese monto">
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Fecha de pago</div>
+                        <input type="date" name="fecha_pago" required class="filter-input" id="p_fecha_pago">
+                    </div>
+
+                    <div class="modal-info" style="grid-column:1 / -1;">
+                        <div class="label">Método</div>
+                        <select name="metodo" required class="filter-select">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Yape">Yape</option>
+                            <option value="Plin">Plin</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Depósito">Depósito</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modal btn-green">
+                        Registrar pago rápido
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="modalEditarContrato" class="modal-overlay" onclick="cerrarModalEditarContrato(event)">
+    <div class="modal-box" style="max-width:700px;">
+        <div class="modal-head">
+            <h3>Editar contrato</h3>
+            <button class="modal-close" type="button" onclick="cerrarModalEditarContrato()">×</button>
+        </div>
+
+        <div class="modal-body">
+            <form method="post" action="/dashboard/editar_contrato">
+                <input type="hidden" name="contrato_id" id="edit_contrato_id">
+
+                <div class="modal-grid">
+                    <div class="modal-info">
+                        <div class="label">Tipo de alquiler</div>
+                        <select name="tipo_alquiler" id="edit_tipo_alquiler" class="filter-select" required>
+                            <option value="mensual">Mensual</option>
+                            <option value="diario">Diario</option>
+                            <option value="noche">Noche</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Monto</div>
+                        <input type="number" step="0.01" min="0.01" name="monto_mensual" id="edit_monto_contrato" class="filter-input" required>
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Fecha inicio</div>
+                        <input type="date" name="fecha_inicio" id="edit_fecha_inicio" class="filter-input" required>
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Fecha fin</div>
+                        <input type="date" name="fecha_fin" id="edit_fecha_fin" class="filter-input" required>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modal btn-green">Guardar cambios</button>
+                    <button type="button" class="btn-modal btn-dark" onclick="cerrarModalEditarContrato()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL LIBRE -->
+<div id="modalContrato" class="modal-overlay" onclick="cerrarModalContrato(event)">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3 id="modalContratoTitulo">Nuevo contrato</h3>
+            <button class="modal-close" type="button" onclick="cerrarModalContrato()">×</button>
+        </div>
+
+        <div class="modal-body">
+            <form method="post" action="/dashboard/crear_contrato">
+                <input type="hidden" name="propiedad_id" id="c_propiedad_id">
+
+                <div class="modal-grid">
+                    <div class="modal-info">
+                        <div class="label">Unidad</div>
+                        <div class="value" id="c_numero">-</div>
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Tipo</div>
+                        <div class="value" id="c_tipo">-</div>
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Precio base</div>
+                        <div class="value" id="c_precio">-</div>
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Estado</div>
+                        <div class="value">Libre</div>
+                    </div>
+
+                    <div class="modal-info" style="grid-column: 1 / -1;">
+                        <div class="label">Inquilino</div>
+                        <div class="d-flex gap-2">
+                            <select name="inquilino_id" class="form-select" id="select_inquilino" required>
+                                <option value="">Seleccione un inquilino</option>
+                                {% for i in inquilinos_dashboard %}
+                                <option value="{{ i.id }}">
+                                    {{ i.nombre }} - DNI {{ i.dni }}{% if i.telefono %} - Tel: {{ i.telefono }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+
+                            <button type="button" class="btn btn-soft" onclick="abrirModalNuevoInquilino()">
+                                <i class="bi bi-person-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Tipo de alquiler</div>
+                        <select name="tipo_alquiler" id="tipo_alquiler_dashboard" required class="filter-select" onchange="toggleMontoMensualDashboard()">
+                            <option value="mensual">Mensual</option>
+                            <option value="diario">Diario</option>
+                            <option value="noche">Noche</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-info" id="bloque_monto_dashboard">
+                        <div class="label">Monto</div>
+
+                        {% if request.session.get("user_rol") == "Administrador" %}
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            name="monto_mensual"
+                            id="monto_mensual_dashboard"
+                            class="filter-input"
+                            placeholder="Ingrese monto"
+                            required
+                        >
+                        {% else %}
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            name="monto_mensual"
+                            id="monto_mensual_dashboard"
+                            class="filter-input"
+                            readonly
+                            required
+                        >
+                        {% endif %}
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Fecha inicio</div>
+                        <input type="date" name="fecha_inicio" required class="filter-input" id="c_fecha_inicio">
+                    </div>
+
+                    <div class="modal-info">
+                        <div class="label">Fecha fin</div>
+                        <input type="date" name="fecha_fin" required class="filter-input" id="c_fecha_fin">
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modal btn-red">Crear contrato</button>
+                    <button type="button" class="btn-modal btn-dark" onclick="cerrarModalContrato()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NUEVO INQUILINO -->
+<div id="modalNuevoInquilino" class="modal-overlay" onclick="cerrarModalNuevoInquilino(event)" style="display:none; z-index:3000;">
+    <div class="modal-box" style="max-width:560px;">
+        <div class="modal-head">
+            <h3>Nuevo inquilino</h3>
+            <button class="modal-close" type="button" onclick="cerrarModalNuevoInquilino()">×</button>
+        </div>
+
+        <div class="modal-body">
+            <form id="formNuevoInquilino">
+                <div class="mb-3">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" name="nombre" class="form-control" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">DNI</label>
+                    <input type="text" name="dni" class="form-control" required pattern="[0-9]{8}" maxlength="8">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Teléfono</label>
+                    <input type="text" name="telefono" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">WhatsApp</label>
+                    <input type="text" name="whatsapp" class="form-control">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn-modal btn-red">Guardar inquilino</button>
+                    <button type="button" class="btn-modal btn-dark" onclick="cerrarModalNuevoInquilino()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function formatearPeriodo(periodo) {
+    if (!periodo) return '-';
+
+    if (periodo.includes('_')) {
+        const partes = periodo.split('_');
+        if (partes.length === 2) {
+            return `Del ${partes[0]} al ${partes[1]}`;
+        }
+    }
+
+    if (/^\d{4}-\d{2}$/.test(periodo)) {
+        const [anio, mes] = periodo.split('-');
+        const meses = {
+            "01": "Enero", "02": "Febrero", "03": "Marzo", "04": "Abril",
+            "05": "Mayo", "06": "Junio", "07": "Julio", "08": "Agosto",
+            "09": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre"
+        };
+        return `${meses[mes] || mes} ${anio}`;
+    }
+
+    return periodo;
+}
+
+function abrirModal(
+    id,
+    numero,
+    tipo,
+    estado,
+    inquilino,
+    modalidad,
+    precio,
+    inicio,
+    fin,
+    deuda,
+    contratoId = '',
+    periodosRaw = '',
+    ultimaAgua = '0',
+    ultimaLuz = '0',
+    fechaAgua = '-',
+    fechaLuz = '-',
+    deudaAlquiler = '0.00',
+    deudaAgua = '0.00',
+    deudaLuz = '0.00',
+    deudaOtros = '0.00',
+    ultimoPagoId = ''
+){
+    const btnReciboPdfA4 = document.getElementById('btnReciboPdfA4');
+    const btnReciboTicket = document.getElementById('btnReciboTicket');
+    const btnWhatsappPago = document.getElementById('btnWhatsappPago');
+    const btnWhatsappCobranza = document.getElementById('btnWhatsappCobranza');
+    const btnWhatsappAmpliacion = document.getElementById('btnWhatsappAmpliacion');
+
+    if (btnWhatsappAmpliacion) {
+        const deudaTotal = parseFloat(deuda || "0");
+
+        if (contratoId && deudaTotal > 0) {
+            btnWhatsappAmpliacion.href = '/contratos/' + contratoId + '/whatsapp_ampliacion';
+            btnWhatsappAmpliacion.style.display = 'inline-flex';
+        } else {
+            btnWhatsappAmpliacion.style.display = 'none';
+        }
+    }
+
+    if (btnWhatsappCobranza) {
+        if (contratoId && String(contratoId).trim() !== '' && parseFloat(deuda || '0') > 0) {
+            btnWhatsappCobranza.href = '/contratos/' + contratoId + '/whatsapp_recordatorio';
+            btnWhatsappCobranza.style.display = 'inline-flex';
+        } else {
+            btnWhatsappCobranza.href = '#';
+            btnWhatsappCobranza.style.display = 'none';
+        }
+    }
+
+    if (ultimoPagoId && String(ultimoPagoId).trim() !== '') {
+
+    if (btnReciboPdfA4) {
+        btnReciboPdfA4.href = '/pagos/' + ultimoPagoId + '/recibo.pdf?formato=a4';
+        btnReciboPdfA4.style.display = 'inline-flex';
+    }
+
+    if (btnReciboTicket) {
+        btnReciboTicket.href = '/pagos/' + ultimoPagoId + '/recibo.pdf?formato=ticket';
+        btnReciboTicket.style.display = 'inline-flex';
+    }
+
+    if (btnWhatsappPago) {
+        btnWhatsappPago.href = '/pagos/' + ultimoPagoId + '/whatsapp';
+        btnWhatsappPago.style.display = 'inline-flex';
+    }
+
+} else {
+
+    if (btnReciboPdfA4) btnReciboPdfA4.style.display = 'none';
+    if (btnReciboTicket) btnReciboTicket.style.display = 'none';
+}
+
+    document.getElementById('modalTitulo').innerText = 'Unidad ' + numero;
+    document.getElementById('m_numero').innerText = numero || '-';
+    document.getElementById('m_tipo').innerText = tipo || '-';
+    document.getElementById('m_estado').innerText = estado || '-';
+    document.getElementById('m_precio').innerText = 'S/ ' + (precio || '0');
+    document.getElementById('m_inquilino').innerText = inquilino || '-';
+    document.getElementById('m_modalidad').innerText = modalidad || '-';
+    document.getElementById('m_inicio').innerText = inicio || '-';
+    document.getElementById('m_fin').innerText = fin || '-';
+    document.getElementById('m_deuda').innerText = 'S/ ' + (deuda || '0');
+
+    document.getElementById('m_deuda_alquiler').innerText = 'S/ ' + (deudaAlquiler || '0.00');
+    document.getElementById('m_deuda_agua').innerText = 'S/ ' + (deudaAgua || '0.00');
+    document.getElementById('m_deuda_luz').innerText = 'S/ ' + (deudaLuz || '0.00');
+    document.getElementById('m_deuda_otros').innerText = 'S/ ' + (deudaOtros || '0.00');
+
+    document.getElementById('m_lectura_agua').innerText = ultimaAgua || '0';
+    document.getElementById('m_lectura_luz').innerText = ultimaLuz || '0';
+    document.getElementById('m_fecha_agua').innerText = fechaAgua || '-';
+    document.getElementById('m_fecha_luz').innerText = fechaLuz || '-';
+
+    document.getElementById('btnDetalle').href = '/propiedades/' + id + '/detalle';
+
+    document.getElementById('p_contrato_id').value = contratoId || '';
+    document.getElementById('f_contrato_id').value = contratoId || '';
+    document.getElementById('l_contrato_id').value = contratoId || '';
+
+    const selectPeriodo = document.getElementById('p_periodo');
+    selectPeriodo.innerHTML = '<option value="">Seleccione periodo</option>';
+
+    if (periodosRaw && String(periodosRaw).trim() !== '') {
+        const periodos = String(periodosRaw).split('||').map(p => p.trim()).filter(Boolean);
+        periodos.forEach(periodo => {
+            const option = document.createElement('option');
+            option.value = periodo;
+            option.textContent = formatearPeriodo(periodo);
+            selectPeriodo.appendChild(option);
+        });
+        if (periodos.length === 1) {
+            selectPeriodo.value = periodos[0];
+        }
+    }
+
+    const formLectura = document.getElementById('formLecturaRapida');
+    formLectura.dataset.agua = ultimaAgua || '0';
+    formLectura.dataset.luz = ultimaLuz || '0';
+
+    document.getElementById('l_servicio').value = 'Agua';
+    document.getElementById('l_periodo').value = new Date().toISOString().slice(0, 7);
+
+    actualizarLecturaAnteriorDashboard();
+    ponerFechaHoyPagoRapido();
+
+    document.getElementById('modalUnidad').classList.add('active');
+}
+
+function cerrarModal(event){
+    if(event && event.target !== document.getElementById('modalUnidad')) return;
+    document.getElementById('modalUnidad').classList.remove('active');
+}
+
+function abrirModalEditarContratoActual() {
+    const contratoId = document.getElementById("f_contrato_id").value;
+    if (!contratoId) {
+        alert("No hay contrato seleccionado");
+        return;
+    }
+
+    document.getElementById("edit_contrato_id").value = contratoId;
+
+    const modalidad = (document.getElementById("m_modalidad").innerText || "").trim().toLowerCase();
+    document.getElementById("edit_tipo_alquiler").value =
+        ["mensual", "diario", "noche"].includes(modalidad) ? modalidad : "mensual";
+
+    const fechaInicioTexto = (document.getElementById("m_inicio").innerText || "").trim();
+    const fechaFinTexto = (document.getElementById("m_fin").innerText || "").trim();
+
+    document.getElementById("edit_fecha_inicio").value = convertirFechaModalAInput(fechaInicioTexto);
+    document.getElementById("edit_fecha_fin").value = convertirFechaModalAInput(fechaFinTexto);
+
+    const precioTexto = (document.getElementById("m_precio").innerText || "").trim();
+    const monto = extraerMonto(precioTexto);
+    document.getElementById("edit_monto_contrato").value = monto > 0 ? monto : "";
+
+    document.getElementById("modalEditarContrato").classList.add("active");
+}
+
+function cerrarModalEditarContrato(event = null) {
+    if (event && event.target !== event.currentTarget) return;
+    document.getElementById("modalEditarContrato").classList.remove("active");
+}
+
+function extraerMonto(texto) {
+    if (!texto) return 0;
+    const limpio = texto.replace("S/", "").replace(/,/g, "").trim();
+    const numero = parseFloat(limpio);
+    return isNaN(numero) ? 0 : numero;
+}
+
+function convertirFechaModalAInput(texto) {
+    if (!texto || texto === "-") return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) return texto;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(texto)) {
+        const [dd, mm, yyyy] = texto.split("/");
+        return `${yyyy}-${mm}-${dd}`;
+    }
+    return "";
+}
+
+function abrirModalContrato(id, numero, tipo, precio){
+    document.getElementById('c_propiedad_id').value = id;
+    document.getElementById('c_numero').innerText = numero;
+    document.getElementById('c_tipo').innerText = tipo;
+    document.getElementById('c_precio').innerText = 'S/ ' + precio;
+    document.getElementById('modalContratoTitulo').innerText = 'Nuevo contrato - Unidad ' + numero;
+
+    const tipoAlquiler = document.getElementById('tipo_alquiler_dashboard');
+    const inputMonto = document.getElementById('monto_mensual_dashboard');
+
+    tipoAlquiler.value = 'mensual';
+
+    let precioSugerido = precio;
+    const tipoLower = (tipo || "").toLowerCase();
+    if (tipoLower.includes("cuarto")) {
+        precioSugerido = 500;
+    }
+
+    inputMonto.value = precioSugerido;
+    inputMonto.dataset.precioMensual = precioSugerido;
+    inputMonto.dataset.precioNoche = 50;
+    inputMonto.dataset.precioDiario = precioSugerido;
+
+    const hoy = new Date().toISOString().slice(0, 10);
+    document.getElementById('c_fecha_inicio').value = hoy;
+    document.getElementById('c_fecha_fin').value = hoy;
+
+    toggleMontoMensualDashboard();
+    document.getElementById('modalContrato').classList.add('active');
+}
+
+function cerrarModalContrato(event = null){
+    if(event && event.target !== document.getElementById('modalContrato')) return;
+    document.getElementById('modalContrato').classList.remove('active');
+}
+
+function toggleMontoMensualDashboard(){
+    const tipo = document.getElementById('tipo_alquiler_dashboard').value;
+    const input = document.getElementById('monto_mensual_dashboard');
+
+    if(tipo === "mensual" && input.dataset.precioMensual){
+        input.value = input.dataset.precioMensual;
+    }
+    if(tipo === "noche" && input.dataset.precioNoche){
+        input.value = input.dataset.precioNoche;
+    }
+    if(tipo === "diario" && input.dataset.precioDiario){
+        input.value = input.dataset.precioDiario;
+    }
+}
+
+function actualizarLecturaAnteriorDashboard() {
+    const servicio = document.getElementById('l_servicio').value;
+    const form = document.getElementById('formLecturaRapida');
+    const input = document.getElementById('l_lectura_anterior');
+
+    if (!form || !input) return;
+
+    if (servicio === 'Agua') {
+        input.value = form.dataset.agua || '0';
+    } else {
+        input.value = form.dataset.luz || '0';
+    }
+}
+
+function ponerFechaHoyPagoRapido() {
+    const input = document.getElementById('p_fecha_pago');
+    if (input) {
+        input.value = new Date().toISOString().slice(0, 10);
+    }
+}
+
+function cobrarTodosMorosos() {
+    const links = Array.from(document.querySelectorAll('a[href*="/whatsapp_recordatorio"]'));
+    if (!links.length) {
+        alert("No hay deudores para cobrar.");
+        return;
+    }
+
+    let i = 0;
+    function abrirSiguiente() {
+        if (i >= links.length) return;
+        window.open(links[i].href, "_blank");
+        i++;
+        setTimeout(abrirSiguiente, 900);
+    }
+
+    abrirSiguiente();
+}
+
+function getCards() {
+    return Array.from(document.querySelectorAll(".room-card"));
+}
+
+function getPanels() {
+    return Array.from(document.querySelectorAll(".zone-panel"));
+}
+
+function getTabs() {
+    return Array.from(document.querySelectorAll(".zone-tab"));
+}
+
+function filtrarTarjetas() {
+    const texto = (document.getElementById("searchInput")?.value || "").trim().toLowerCase();
+    const estado = (document.getElementById("estadoFilter")?.value || "todos").toLowerCase();
+    const modalidad = (document.getElementById("modalidadFilter")?.value || "todos").toLowerCase();
+
+    const cards = getCards();
+    let totalVisibles = 0;
+
+    cards.forEach(card => {
+        const numero = (card.dataset.numero || "").toLowerCase();
+        const tipo = (card.dataset.tipo || "").toLowerCase();
+        const inquilino = (card.dataset.inquilino || "").toLowerCase();
+        const estadoCard = (card.dataset.estado || "").toLowerCase();
+        const modalidadCard = (card.dataset.modalidad || "-").toLowerCase();
+        const tieneDeuda = (card.dataset.deuda || "no").toLowerCase();
+
+        let visible = true;
+
+        if (texto) {
+            const coincideTexto =
+                numero.includes(texto) ||
+                tipo.includes(texto) ||
+                inquilino.includes(texto);
+
+            if (!coincideTexto) visible = false;
+        }
+
+        if (estado !== "todos") {
+            if (estado === "con_deuda") {
+                if (tieneDeuda !== "si") visible = false;
+            } else if (estadoCard !== estado) {
+                visible = false;
+            }
+        }
+
+        if (modalidad !== "todos" && modalidadCard !== modalidad) {
+            visible = false;
+        }
+
+        card.classList.toggle("hidden", !visible);
+        if (visible) totalVisibles++;
+    });
+
+    actualizarPaneles();
+    actualizarResultados(totalVisibles);
+}
+
+function actualizarPaneles() {
+    const panels = getPanels();
+
+    panels.forEach(panel => {
+        const visibles = panel.querySelectorAll(".room-card:not(.hidden)");
+        const count = panel.querySelector(".zone-count");
+
+        if (count) {
+            count.textContent = visibles.length + " unidad(es)";
+        }
+
+        if (visibles.length === 0) {
+            panel.style.display = "none";
+            panel.classList.remove("active");
+        } else {
+            panel.style.display = "";
+        }
+    });
+
+    let panelActivo = document.querySelector(".zone-panel.active");
+    if (!panelActivo || panelActivo.style.display === "none") {
+        const primerVisible = panels.find(p => p.style.display !== "none");
+        if (primerVisible) {
+            panels.forEach(p => p.classList.remove("active"));
+            primerVisible.classList.add("active");
+
+            const grupo = primerVisible.getAttribute("data-zone-panel");
+            getTabs().forEach(btn => {
+                btn.classList.toggle("active", btn.getAttribute("data-zone-btn") === grupo);
+            });
+        }
+    }
+}
+
+function actualizarResultados(totalVisibles) {
+    const info = document.getElementById("resultsInfo");
+    const noResults = document.getElementById("noResults");
+
+    if (info) {
+        info.textContent = totalVisibles + " unidad(es) visibles";
+    }
+
+    if (noResults) {
+        noResults.classList.toggle("show", totalVisibles === 0);
+    }
+}
+
+function cambiarZona(grupo, btn) {
+    const panels = getPanels();
+    const tabs = getTabs();
+
+    tabs.forEach(t => t.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+
+    panels.forEach(panel => {
+        const esActual = panel.getAttribute("data-zone-panel") === grupo;
+        panel.classList.toggle("active", esActual);
+    });
+}
+
+function limpiarFiltros() {
+    const searchInput = document.getElementById("searchInput");
+    const estadoFilter = document.getElementById("estadoFilter");
+    const modalidadFilter = document.getElementById("modalidadFilter");
+
+    if (searchInput) searchInput.value = "";
+    if (estadoFilter) estadoFilter.value = "todos";
+    if (modalidadFilter) modalidadFilter.value = "todos";
+
+    document.querySelectorAll(".stat-box").forEach(box => box.classList.remove("active"));
+    const statTodos = document.getElementById("statTodos");
+    if (statTodos) statTodos.classList.add("active");
+
+    filtrarTarjetas();
+}
+
+function aplicarFiltroRapido(tipo, el) {
+    document.querySelectorAll(".stat-box").forEach(box => box.classList.remove("active"));
+    if (el) el.classList.add("active");
+
+    const estadoFilter = document.getElementById("estadoFilter");
+    const modalidadFilter = document.getElementById("modalidadFilter");
+
+    if (modalidadFilter) modalidadFilter.value = "todos";
+
+    if (estadoFilter) {
+        if (tipo === "todos") estadoFilter.value = "todos";
+        else if (tipo === "ocupado") estadoFilter.value = "ocupado";
+        else if (tipo === "libre") estadoFilter.value = "libre";
+        else if (tipo === "moroso") estadoFilter.value = "moroso";
+        else if (tipo === "con_deuda") estadoFilter.value = "con_deuda";
+    }
+
+    filtrarTarjetas();
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const url = new URL(window.location);
+    if (url.searchParams.get("ok_pago")) {
+        window.history.replaceState({}, document.title, "/dashboard");
+    }
+
+    const telefonoInput = document.querySelector("#formNuevoInquilino input[name='telefono']");
+    const whatsappInput = document.querySelector("#formNuevoInquilino input[name='whatsapp']");
+
+    if (telefonoInput && whatsappInput) {
+        telefonoInput.addEventListener("input", function(){
+            if(whatsappInput.value === ""){
+                whatsappInput.value = this.value;
+            }
+        });
+    }
+
+    const formNuevoInquilino = document.getElementById("formNuevoInquilino");
+    if (formNuevoInquilino) {
+        formNuevoInquilino.onsubmit = async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const res = await fetch("/inquilinos/ajax-crear", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.ok) {
+                    const select = document.getElementById("select_inquilino");
+                    const option = document.createElement("option");
+                    option.value = data.id;
+                    option.text = `${data.nombre} - DNI ${data.dni}${data.telefono ? " - Tel: " + data.telefono : ""}`;
+                    option.selected = true;
+
+                    select.appendChild(option);
+                    select.value = data.id;
+
+                    cerrarModalNuevoInquilino();
+                    formNuevoInquilino.reset();
+                } else {
+                    alert(data.error || "No se pudo crear el inquilino");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error al procesar la respuesta del servidor");
+            }
+        };
+    }
+
+    filtrarTarjetas();
+});
+</script>
+<script>
+function validarLecturaRapida() {
+    const contratoId = document.getElementById("l_contrato_id")?.value;
+    const servicio = document.getElementById("l_servicio")?.value;
+    const periodo = document.getElementById("l_periodo")?.value;
+    const lecturaAnterior = document.getElementById("l_lectura_anterior")?.value;
+    const lecturaActual = document.querySelector('#formLecturaRapida input[name="lectura_actual"]')?.value;
+    const tarifa = document.querySelector('#formLecturaRapida input[name="tarifa"]')?.value;
+
+    if (!contratoId) {
+        alert("No se encontró el contrato de la unidad.");
+        return false;
+    }
+    if (!servicio) {
+        alert("Seleccione el servicio.");
+        return false;
+    }
+    if (!periodo) {
+        alert("Ingrese el período.");
+        return false;
+    }
+    if (lecturaAnterior === "" || lecturaAnterior === null) {
+        alert("Falta la lectura anterior.");
+        return false;
+    }
+    if (lecturaActual === "" || lecturaActual === null) {
+        alert("Ingrese la lectura actual.");
+        return false;
+    }
+    if (tarifa === "" || tarifa === null) {
+        alert("Ingrese la tarifa.");
+        return false;
+    }
+
+    return true;
+}
+</script>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+function abrirModalNuevoInquilino() {
+    const modal = document.getElementById("modalNuevoInquilino");
+    if (modal) modal.style.display = "flex";
+}
+
+function cerrarModalNuevoInquilino(event = null) {
+    if (event && event.target !== event.currentTarget) return;
+    const modal = document.getElementById("modalNuevoInquilino");
+    if (modal) modal.style.display = "none";
+}
+</script>
+{% endblock %}

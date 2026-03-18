@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+{% block title %}Bitácora de Cobranza | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .summary-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .summary-card .label{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    letter-spacing:.4px;
+  }
+
+  .summary-card .value{
+    margin-top:8px;
+    font-size:24px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .filters-bar{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:14px;
+    box-shadow:0 8px 18px rgba(0,0,0,.05);
+    margin-bottom:18px;
+    display:grid;
+    grid-template-columns:1.1fr .8fr .8fr auto;
+    gap:12px;
+    align-items:end;
+  }
+
+  .filter-group{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .filter-label{
+    font-size:12px;
+    font-weight:800;
+    color:#6b7280;
+    text-transform:uppercase;
+    letter-spacing:.4px;
+  }
+
+  .filter-input,
+  .filter-select{
+    width:100%;
+    border:1px solid #d1d5db;
+    border-radius:12px;
+    padding:11px 12px;
+    font-size:14px;
+    outline:none;
+    background:#fff;
+  }
+
+  .btn-clear{
+    height:44px;
+    border:none;
+    border-radius:12px;
+    background:#111827;
+    color:#fff;
+    font-weight:800;
+    cursor:pointer;
+    padding:0 16px;
+  }
+
+  .bitacora-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+    gap:16px;
+  }
+
+  .bit-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+    transition:.2s ease;
+  }
+
+  .bit-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 24px rgba(0,0,0,.10);
+  }
+
+  .bit-top{
+    background:linear-gradient(180deg,#1f2937 0%,#111827 100%);
+    color:#fff;
+    padding:16px;
+  }
+
+  .bit-badges{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+
+  .bit-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.3px;
+  }
+
+  .badge-moroso{ background:#7f1d1d; color:#fff; }
+  .badge-parcial{ background:#2563eb; color:#fff; }
+  .badge-hoy{ background:#f59e0b; color:#111827; }
+  .badge-pendiente{ background:#374151; color:#fff; }
+
+  .bit-name{
+    font-size:22px;
+    font-weight:900;
+    line-height:1.1;
+    margin-bottom:6px;
+  }
+
+  .bit-sub{
+    color:#d1d5db;
+    font-size:13px;
+    line-height:1.5;
+  }
+
+  .bit-body{
+    padding:16px;
+  }
+
+  .bit-info{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+
+  .bit-info-box{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:12px;
+  }
+
+  .bit-info-box .label{
+    font-size:11px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    margin-bottom:5px;
+  }
+
+  .bit-info-box .value{
+    font-size:14px;
+    font-weight:800;
+    color:#111827;
+    line-height:1.4;
+    word-break:break-word;
+  }
+
+  .deuda-text{
+    color:#b91c1c !important;
+  }
+
+  .bit-message{
+    background:#fff7ed;
+    border:1px solid #fed7aa;
+    border-radius:14px;
+    padding:12px;
+    font-size:13px;
+    color:#7c2d12;
+    line-height:1.55;
+    white-space:pre-line;
+    margin-bottom:14px;
+  }
+
+  .bit-actions{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+  }
+
+  .bit-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    border:none;
+    border-radius:12px;
+    padding:10px 8px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+    min-height:40px;
+  }
+
+  .btn-wa{ background:#25D366; color:#fff; }
+  .btn-dark{ background:#111827; color:#fff; }
+  .btn-soft2{ background:#f3f4f6; color:#111827; border:1px solid #e5e7eb; }
+
+  .results-info{
+    margin-top:14px;
+    font-size:13px;
+    color:#6b7280;
+    text-align:right;
+  }
+
+  .no-results{
+    display:none;
+    margin-top:18px;
+    border:2px dashed #d1d5db;
+    border-radius:16px;
+    padding:28px 20px;
+    text-align:center;
+    color:#6b7280;
+    background:#f9fafb;
+    font-weight:700;
+  }
+
+  .no-results.show{
+    display:block;
+  }
+
+  @media (max-width: 900px){
+    .filters-bar{
+      grid-template-columns:1fr;
+    }
+    .bit-actions{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Bitácora de Cobranza</h1>
+      <p>Historial de mensajes enviados a inquilinos por deuda, pago parcial o vencimiento.</p>
+    </div>
+
+    <div>
+      <a href="/dashboard" class="btn btn-soft">
+        <i class="bi bi-arrow-left me-1"></i> Volver al dashboard
+      </a>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Mensajes registrados</div>
+      <div class="value">{{ items|length }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Morosos</div>
+      <div class="value">{{ items | selectattr("tipo_mensaje", "equalto", "Moroso") | list | length }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Pago parcial</div>
+      <div class="value">{{ items | selectattr("tipo_mensaje", "equalto", "Pago parcial") | list | length }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Vence hoy</div>
+      <div class="value">{{ items | selectattr("tipo_mensaje", "equalto", "Vence hoy") | list | length }}</div>
+    </div>
+  </div>
+
+  <form class="filters-bar" method="get" action="/cobranza/bitacora">
+    <div class="filter-group">
+      <label class="filter-label">Buscar</label>
+      <input
+        type="text"
+        id="searchInput"
+        class="filter-input"
+        placeholder="Buscar por inquilino, propiedad, teléfono o mensaje..."
+        oninput="filtrarBitacora()">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Tipo de mensaje</label>
+      <select id="tipoFilter" class="filter-select" onchange="filtrarBitacora()">
+        <option value="todos">Todos</option>
+        <option value="moroso">Moroso</option>
+        <option value="pago parcial">Pago parcial</option>
+        <option value="vence hoy">Vence hoy</option>
+        <option value="pendiente">Pendiente</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Fecha exacta</label>
+      <input type="date" name="fecha" class="filter-input" value="{{ fecha or '' }}">
+    </div>
+
+    <button class="btn-clear" type="submit">Aplicar</button>
+  </form>
+
+  <div class="bitacora-grid" id="bitacoraGrid">
+    {% for item in items %}
+      {% set tipo = (item.tipo_mensaje or 'Pendiente') %}
+      {% set tipo_lower = tipo|lower %}
+      <div class="bit-card bit-item"
+           data-search="
+            {{ (item.inquilino.nombre if item.inquilino else '')|lower }}
+            {{ (item.contrato.propiedad.numero if item.contrato and item.contrato.propiedad else '')|lower }}
+            {{ (item.contrato.propiedad.tipo if item.contrato and item.contrato.propiedad else '')|lower }}
+            {{ (item.telefono or '')|lower }}
+            {{ (item.detalle or '')|lower }}
+           "
+           data-tipo="{{ tipo_lower }}">
+
+        <div class="bit-top">
+          <div class="bit-badges">
+            {% if tipo == "Moroso" %}
+              <span class="bit-badge badge-moroso"><i class="bi bi-exclamation-triangle-fill"></i> Moroso</span>
+            {% elif tipo == "Pago parcial" %}
+              <span class="bit-badge badge-parcial"><i class="bi bi-wallet2"></i> Pago parcial</span>
+            {% elif tipo == "Vence hoy" %}
+              <span class="bit-badge badge-hoy"><i class="bi bi-calendar-event"></i> Vence hoy</span>
+            {% else %}
+              <span class="bit-badge badge-pendiente"><i class="bi bi-bell"></i> Pendiente</span>
+            {% endif %}
+          </div>
+
+          <div class="bit-name">
+            {{ item.inquilino.nombre if item.inquilino else "Sin inquilino" }}
+          </div>
+
+          <div class="bit-sub">
+            {% if item.contrato and item.contrato.propiedad %}
+              {{ item.contrato.propiedad.tipo }} {{ item.contrato.propiedad.numero }}
+            {% else %}
+              Sin propiedad
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="bit-body">
+          <div class="bit-info">
+            <div class="bit-info-box">
+              <div class="label">Fecha envío</div>
+              <div class="value">{{ item.fecha_envio or "-" }}</div>
+            </div>
+
+            <div class="bit-info-box">
+              <div class="label">Teléfono</div>
+              <div class="value">{{ item.telefono or "-" }}</div>
+            </div>
+
+            <div class="bit-info-box">
+              <div class="label">Deuda total</div>
+              <div class="value deuda-text">S/ {{ "%.2f"|format(item.deuda_total or 0) }}</div>
+            </div>
+
+            <div class="bit-info-box">
+              <div class="label">Contrato</div>
+              <div class="value">
+                {% if item.contrato %}#{{ item.contrato.id }}{% else %}-{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="bit-message">{{ item.detalle or "Sin detalle registrado." }}</div>
+
+          <div class="bit-actions">
+            {% if item.contrato %}
+            <a href="/contratos/{{ item.contrato.id }}/whatsapp_recordatorio"
+               target="_blank"
+               class="bit-btn btn-wa">
+              Reenviar
+            </a>
+            <a href="/contratos/{{ item.contrato.id }}/detalle"
+               class="bit-btn btn-dark">
+              Contrato
+            </a>
+            {% else %}
+            <span class="bit-btn btn-soft2">Sin contrato</span>
+            <span class="bit-btn btn-soft2">-</span>
+            {% endif %}
+
+            {% if item.inquilino %}
+            <a href="/inquilinos/{{ item.inquilino.id }}/detalle"
+               class="bit-btn btn-soft2">
+              Inquilino
+            </a>
+            {% else %}
+            <span class="bit-btn btn-soft2">-</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="results-info" id="resultsInfo"></div>
+  <div class="no-results" id="noResults">No se encontraron registros con esos filtros.</div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+(function(){
+  const items = Array.from(document.querySelectorAll(".bit-item"));
+  const searchInput = document.getElementById("searchInput");
+  const tipoFilter = document.getElementById("tipoFilter");
+  const resultsInfo = document.getElementById("resultsInfo");
+  const noResults = document.getElementById("noResults");
+
+  window.filtrarBitacora = function(){
+    const texto = (searchInput?.value || "").toLowerCase().trim();
+    const tipo = (tipoFilter?.value || "todos").toLowerCase();
+
+    let visibles = 0;
+
+    items.forEach(item => {
+      const search = (item.dataset.search || "").toLowerCase();
+      const tipoItem = (item.dataset.tipo || "").toLowerCase();
+
+      const coincideTexto = !texto || search.includes(texto);
+      const coincideTipo = tipo === "todos" || tipoItem === tipo;
+
+      const mostrar = coincideTexto && coincideTipo;
+      item.style.display = mostrar ? "" : "none";
+
+      if(mostrar) visibles++;
+    });
+
+    if(resultsInfo){
+      resultsInfo.textContent = `${visibles} registro(s) visibles`;
+    }
+
+    if(noResults){
+      noResults.classList.toggle("show", visibles === 0);
+    }
+  }
+
+  filtrarBitacora();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,502 @@
+{% extends "base.html" %}
+{% block title %}Inquilinos | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .summary-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .summary-card .label{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    letter-spacing:.4px;
+  }
+
+  .summary-card .value{
+    margin-top:8px;
+    font-size:28px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .tenant-layout{
+    display:grid;
+    grid-template-columns:360px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .tenant-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:18px;
+  }
+
+  .tenant-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    overflow:hidden;
+    transition:.2s ease;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .tenant-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 16px 28px rgba(0,0,0,.14);
+  }
+
+  .tenant-top{
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,.10), transparent 30%),
+      linear-gradient(180deg,#1f2937 0%,#111827 100%);
+    color:#fff;
+    padding:18px 16px;
+    min-height:215px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+
+  .tenant-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.4px;
+    width:max-content;
+  }
+
+  .badge-activo{
+    background:#16a34a;
+    color:#fff;
+  }
+
+  .badge-inactivo{
+    background:#dc2626;
+    color:#fff;
+  }
+
+  .tenant-name{
+    font-size:24px;
+    font-weight:900;
+    line-height:1.15;
+    margin:10px 0 4px;
+  }
+
+  .tenant-doc{
+    font-size:14px;
+    color:#e5e7eb;
+    font-weight:700;
+  }
+
+  .tenant-info{
+    margin-top:14px;
+    font-size:13px;
+    color:#d1d5db;
+    line-height:1.6;
+  }
+
+  .tenant-info strong{
+    color:#fff;
+  }
+
+  .tenant-actions{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+    padding:12px;
+    background:#fff;
+    border-top:1px solid #f1f5f9;
+  }
+
+  .tenant-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    border:none;
+    border-radius:12px;
+    padding:10px 8px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+  }
+
+  .btn-charge{
+    background:#111827;
+    color:#fff;
+  }
+
+  .btn-state{
+    background:#ef4444;
+    color:#fff;
+  }
+
+  .btn-wa{
+    background:#22c55e;
+    color:#fff;
+  }
+
+  .btn-edit{
+    background:#f59e0b;
+    color:#111827;
+  }
+
+  .btn-delete{
+    background:#fee2e2;
+    color:#991b1b;
+    border:1px solid #fecaca;
+  }
+
+  .search-box{
+    margin-bottom:16px;
+  }
+
+  .empty-box{
+    border:2px dashed #d1d5db;
+    border-radius:16px;
+    padding:28px 20px;
+    text-align:center;
+    color:#6b7280;
+    background:#f9fafb;
+    font-weight:700;
+  }
+
+  @media (max-width: 992px){
+    .tenant-layout{
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (max-width: 640px){
+    .tenant-actions{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Gestión de Inquilinos</h1>
+      <p>Registro de clientes, contacto, cobranza y estado de cuenta.</p>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Total inquilinos</div>
+      <div class="value">{{ inquilinos|length }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Activos</div>
+      <div class="value">
+        {{ inquilinos | selectattr("estado", "equalto", "Activo") | list | length }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Inactivos</div>
+      <div class="value">
+        {{ inquilinos | selectattr("estado", "equalto", "Inactivo") | list | length }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Con WhatsApp</div>
+      <div class="value">
+        {{ inquilinos | selectattr("whatsapp") | list | length }}
+      </div>
+    </div>
+  </div>
+
+  <div class="tenant-layout">
+
+    <!-- FORMULARIO -->
+    <div>
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-person-plus me-2"></i> Nuevo Inquilino
+        </div>
+
+        <div class="card-body">
+          <div class="mb-3 p-3" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;">
+            <div style="font-weight:800;color:#111827;">¿Qué registrarás aquí?</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+              Ingresa los datos del cliente para asociarlo a contratos, pagos, cobranza y estados de cuenta.
+            </div>
+          </div>
+
+          <form action="/inquilinos/crear" method="post" class="row g-3">
+
+            <div class="col-12">
+              <label class="form-label fw-bold">DNI</label>
+              <input class="form-control" name="dni" required placeholder="Ej: 12345678">
+              <div class="form-text">Documento de identidad del inquilino.</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Nombre completo</label>
+              <input class="form-control" name="nombre" required placeholder="Ej: Juan Pérez">
+              <div class="form-text">Este nombre se mostrará en contratos, pagos y cobranza.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Teléfono</label>
+              <input class="form-control" name="telefono" placeholder="Ej: 961234567">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">WhatsApp</label>
+              <input class="form-control" name="whatsapp" placeholder="Ej: 961234567">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Estado</label>
+              <select class="form-select" name="estado">
+                <option value="Activo" selected>Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <div style="border:1px dashed #d1d5db;border-radius:14px;padding:14px;background:#fcfcfd;">
+                <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:#6b7280;letter-spacing:.4px;">
+                  Vista previa
+                </div>
+                <div style="margin-top:10px;">
+                  <div style="font-size:20px;font-weight:900;color:#111827;" id="previewNombre">Juan Pérez</div>
+                  <div style="font-size:14px;color:#6b7280;font-weight:700;" id="previewDni">DNI: 12345678</div>
+                  <div style="margin-top:6px;font-size:14px;color:#15803d;font-weight:900;" id="previewEstado">Activo</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+              <button class="btn btn-credimas" type="submit">
+                <i class="bi bi-check2-circle me-1"></i> Guardar
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- TARJETAS -->
+    <div>
+      <div class="card-pro">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span><i class="bi bi-people me-2"></i> Inquilinos registrados</span>
+          <span id="contadorInquilinos" class="text-muted small"></span>
+        </div>
+
+        <div class="card-body">
+          <div class="search-box">
+            <input id="buscarInquilino" class="form-control" placeholder="Buscar por nombre, DNI, teléfono o WhatsApp">
+          </div>
+
+          {% if inquilinos|length > 0 %}
+          <div class="tenant-grid">
+            {% for i in inquilinos %}
+            <div class="tenant-card inq-row"
+                 data-search="{{ (i.nombre or '')|lower }} {{ (i.dni or '')|lower }} {{ (i.telefono or '')|lower }} {{ (i.whatsapp or '')|lower }} {{ (i.estado or '')|lower }}">
+
+              <div class="tenant-top">
+                <div>
+                  {% if i.estado == "Activo" %}
+                    <span class="tenant-badge badge-activo">
+                      <i class="bi bi-check-circle"></i> Activo
+                    </span>
+                  {% else %}
+                    <span class="tenant-badge badge-inactivo">
+                      <i class="bi bi-x-circle"></i> Inactivo
+                    </span>
+                  {% endif %}
+                </div>
+
+                <div>
+                  <div class="tenant-name">{{ i.nombre }}</div>
+                  <div class="tenant-doc">DNI: {{ i.dni }}</div>
+                </div>
+
+                <div class="tenant-info">
+                  <div><strong>Teléfono:</strong> {{ i.telefono or '-' }}</div>
+                  <div><strong>WhatsApp:</strong> {{ i.whatsapp or '-' }}</div>
+                  <div><strong>ID:</strong> #{{ i.id }}</div>
+                </div>
+              </div>
+
+              <div class="tenant-actions">
+                <a class="tenant-btn btn-charge" href="/inquilinos/{{ i.id }}/detalle">Ver</a>
+                
+                <a class="tenant-btn btn-charge" href="/pagos?q={{ i.dni }}">Cobrar</a>
+
+                <a class="tenant-btn btn-state" href="/inquilinos/{{ i.id }}/estado_cuenta.pdf" target="_blank">
+                  Estado
+                </a>
+
+                <a class="tenant-btn btn-wa" href="/whatsapp/recordatorio/{{ i.id }}" target="_blank">
+                  WhatsApp
+                </a>
+
+                <a class="tenant-btn btn-edit" href="/inquilinos/{{ i.id }}/editar">
+                  Editar
+                </a>
+
+                {% if request.session.get("user_rol") == "Administrador" %}
+                <form method="post" action="/inquilinos/{{ i.id }}/desactivar" style="display:inline;">
+                    <button type="submit" class="btn btn-warning"
+                            onclick="return confirm('¿Seguro de desactivar este inquilino?')">
+                        Desactivar
+                    </button>
+                </form>
+
+                {% if request.session.get("user_rol") == "Administrador" %}
+                <form method="post" action="/inquilinos/{{ i.id }}/activar" style="display:inline;">
+                    <button type="submit" class="btn btn-success">
+                        Activar
+                    </button>
+                </form>
+
+                <form method="post" action="/inquilinos/{{ i.id }}/eliminar" style="display:inline;">
+                    <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('¿Seguro de eliminar este inquilino? Esta acción es permanente.')">
+                        Eliminar
+                    </button>
+                </form>
+                {% endif %}
+                {% endif %}
+              </div>
+
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-box">
+            No hay inquilinos registrados todavía.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+(function(){
+  const buscador = document.getElementById("buscarInquilino");
+  const cards = Array.from(document.querySelectorAll(".inq-row"));
+  const contador = document.getElementById("contadorInquilinos");
+
+  function actualizarContador(visibles){
+    if(contador){
+      contador.textContent = `Mostrando ${visibles} de ${cards.length} inquilinos`;
+    }
+  }
+
+  function filtrar(){
+    const texto = (buscador.value || "").toLowerCase().trim();
+    let visibles = 0;
+
+    cards.forEach(card => {
+      const data = (card.dataset.search || "").toLowerCase();
+      const mostrar = !texto || data.includes(texto);
+      card.style.display = mostrar ? "" : "none";
+      if(mostrar) visibles++;
+    });
+
+    actualizarContador(visibles);
+  }
+
+  if(buscador){
+    buscador.addEventListener("input", filtrar);
+  }
+
+  actualizarContador(cards.length);
+})();
+
+(function(){
+  const dni = document.querySelector('input[name="dni"]');
+  const nombre = document.querySelector('input[name="nombre"]');
+  const estado = document.querySelector('select[name="estado"]');
+
+  const previewNombre = document.getElementById("previewNombre");
+  const previewDni = document.getElementById("previewDni");
+  const previewEstado = document.getElementById("previewEstado");
+
+  function actualizarPreview(){
+    if(previewNombre){
+      previewNombre.textContent = (nombre?.value || "").trim() || "Juan Pérez";
+    }
+    if(previewDni){
+      previewDni.textContent = "DNI: " + (((dni?.value || "").trim()) || "12345678");
+    }
+    if(previewEstado){
+      previewEstado.textContent = (estado?.value || "Activo");
+      previewEstado.style.color = (estado?.value || "Activo") === "Activo" ? "#15803d" : "#dc2626";
+    }
+  }
+
+  if(dni) dni.addEventListener("input", actualizarPreview);
+  if(nombre) nombre.addEventListener("input", actualizarPreview);
+  if(estado) estado.addEventListener("change", actualizarPreview);
+
+  actualizarPreview();
+})();
+</script>
+{% endblock %}

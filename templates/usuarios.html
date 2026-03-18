@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios | CREDIMAS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Usuarios</h1>
+        <p class="page-subtitle">Administra accesos, roles, estados y restablecimiento de contraseñas.</p>
+    </div>
+</div>
+
+<div class="card-pro mb-4">
+    <div class="card-body">
+        <form method="get" action="/usuarios" class="row g-2">
+            <div class="col-md-10">
+                <input
+                    type="text"
+                    name="q"
+                    class="form-control"
+                    placeholder="Buscar por nombre, username, rol o estado"
+                    value="{{ q or '' }}"
+                >
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-soft">
+                    <i class="bi bi-search me-1"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if ok == "creado" %}
+    <div class="alert alert-success">Usuario creado correctamente.</div>
+{% elif ok == "estado" %}
+    <div class="alert alert-success">Estado actualizado correctamente.</div>
+{% elif ok == "rol" %}
+    <div class="alert alert-success">Rol actualizado correctamente.</div>
+{% elif ok == "clave" %}
+    <div class="alert alert-success">Contraseña restablecida correctamente.</div>
+{% endif %}
+
+{% if error == "usuario_existe" %}
+    <div class="alert alert-danger">Ya existe un usuario con ese username.</div>
+{% elif error == "no_encontrado" %}
+    <div class="alert alert-danger">Usuario no encontrado.</div>
+{% elif error == "no_puedes_desactivarte" %}
+    <div class="alert alert-danger">No puedes desactivar tu propio usuario mientras estás logueado.</div>
+{% elif error == "ultimo_admin" %}
+    <div class="alert alert-danger">No puedes quitar el rol al último administrador activo.</div>
+{% elif error == "nombre_invalido" %}
+    <div class="alert alert-danger">El nombre debe tener al menos 3 caracteres.</div>
+{% elif error == "username_invalido" %}
+    <div class="alert alert-danger">El username debe tener al menos 3 caracteres.</div>
+{% elif error == "password_invalida" %}
+    <div class="alert alert-danger">La contraseña debe tener al menos 4 caracteres.</div>
+{% elif error == "rol_invalido" %}
+    <div class="alert alert-danger">El rol enviado no es válido.</div>
+{% elif error == "estado_invalido" %}
+    <div class="alert alert-danger">El estado enviado no es válido.</div>
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card-pro">
+            <div class="card-header">
+                <i class="bi bi-person-plus-fill me-2"></i>Crear usuario
+            </div>
+            <div class="card-body">
+                <form method="post" action="/usuarios/crear">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" name="nombre" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Rol</label>
+                        <select name="rol" class="form-select" required>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Operador" selected>Operador</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-select" required>
+                            <option value="Activo" selected>Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-credimas w-100">
+                        <i class="bi bi-save2 me-1"></i> Guardar usuario
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card-pro">
+            <div class="card-header">
+                <i class="bi bi-people-fill me-2"></i>Listado de usuarios
+            </div>
+            <div class="card-body">
+                <div class="table-pro">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Username</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th style="min-width: 260px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in usuarios %}
+                            <tr>
+                                <td>{{ u.nombre }}</td>
+                                <td>{{ u.username }}</td>
+                                <td>
+                                    {% if u.rol == "Administrador" %}
+                                        <span class="badge-soft danger">Administrador</span>
+                                    {% else %}
+                                        <span class="badge-soft gray">Operador</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if u.estado == "Activo" %}
+                                        <span class="badge-soft success">Activo</span>
+                                    {% else %}
+                                        <span class="badge-soft warning">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column gap-2">
+
+                                        <form method="post" action="/usuarios/{{ u.id }}/rol" class="d-flex gap-2">
+                                            <select name="rol" class="form-select form-select-sm">
+                                                <option value="Administrador" {% if u.rol == "Administrador" %}selected{% endif %}>Administrador</option>
+                                                <option value="Operador" {% if u.rol == "Operador" %}selected{% endif %}>Operador</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-soft">Rol</button>
+                                        </form>
+
+                                        <form method="post" action="/usuarios/{{ u.id }}/estado" class="d-flex gap-2">
+                                            <select name="estado" class="form-select form-select-sm">
+                                                <option value="Activo" {% if u.estado == "Activo" %}selected{% endif %}>Activo</option>
+                                                <option value="Inactivo" {% if u.estado == "Inactivo" %}selected{% endif %}>Inactivo</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-soft">Estado</button>
+                                        </form>
+
+                                        <form method="post" action="/usuarios/{{ u.id }}/reset-password" class="d-flex gap-2">
+                                            <input type="password" name="nueva_password" class="form-control form-control-sm" placeholder="Nueva contraseña" required>
+                                            <button type="submit" class="btn btn-sm btn-danger-soft">Reset</button>
+                                        </form>
+
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No hay usuarios registrados.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

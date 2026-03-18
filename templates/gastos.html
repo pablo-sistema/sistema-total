@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+{% block title %}Gastos | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .summary-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .summary-card .label{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    letter-spacing:.4px;
+  }
+
+  .summary-card .value{
+    margin-top:8px;
+    font-size:24px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .gastos-layout{
+    display:grid;
+    grid-template-columns:380px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .helper-box{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+
+  .filters-bar{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:14px;
+    box-shadow:0 8px 18px rgba(0,0,0,.05);
+    margin-bottom:18px;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr auto;
+    gap:12px;
+    align-items:end;
+  }
+
+  .filter-group{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .filter-label{
+    font-size:12px;
+    font-weight:800;
+    color:#6b7280;
+    text-transform:uppercase;
+    letter-spacing:.4px;
+  }
+
+  .filter-input,
+  .filter-select{
+    width:100%;
+    border:1px solid #d1d5db;
+    border-radius:12px;
+    padding:11px 12px;
+    font-size:14px;
+    outline:none;
+    background:#fff;
+  }
+
+  .filter-input:focus,
+  .filter-select:focus{
+    border-color:#b91c1c;
+    box-shadow:0 0 0 3px rgba(185,28,28,.08);
+  }
+
+  .expense-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .expense-card-header{
+    padding:16px 18px;
+    border-bottom:1px solid #e5e7eb;
+    background:linear-gradient(180deg,#fff7f7 0%,#fff 100%);
+    color:#7f1d1d;
+    font-weight:900;
+    font-size:18px;
+  }
+
+  .expense-row-title{
+    font-weight:800;
+    color:#111827;
+  }
+
+  .amount-expense{
+    color:#b91c1c;
+    font-weight:900;
+  }
+
+  .category-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.3px;
+    background:#f3f4f6;
+    color:#111827;
+    border:1px solid #e5e7eb;
+  }
+
+  .mini-note{
+    font-size:12px;
+    color:#6b7280;
+  }
+
+  .table-pro table td,
+  .table-pro table th{
+    vertical-align:middle;
+  }
+
+  @media (max-width: 992px){
+    .gastos-layout{
+      grid-template-columns:1fr;
+    }
+    .filters-bar{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Módulo de Gastos</h1>
+      <p>Registra egresos del negocio, mantenimiento, compras y servicios operativos.</p>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Total gastos</div>
+      <div class="value">S/ {{ "%.2f"|format(total_gastado) }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Gastos de hoy</div>
+      <div class="value">S/ {{ "%.2f"|format(total_hoy) }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Registros</div>
+      <div class="value">{{ items|length }}</div>
+    </div>
+  </div>
+
+  <div class="gastos-layout">
+
+    <!-- FORMULARIO -->
+    <div>
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-cash-stack me-2"></i> Registrar gasto
+        </div>
+
+        <div class="card-body">
+          <div class="helper-box">
+            <div style="font-weight:800;color:#111827;">¿Qué puedes registrar aquí?</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+              Usa este módulo para registrar gastos operativos como mantenimiento, servicios, compras, movilidad, reparación u otros egresos del negocio.
+            </div>
+          </div>
+
+          <form action="/gastos/crear" method="post" class="row g-3">
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Fecha</label>
+              <input type="date" name="fecha" class="form-control" required>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Categoría</label>
+              <select name="categoria" class="form-select" required>
+                <option value="Mantenimiento">Mantenimiento</option>
+                <option value="Agua general">Agua general</option>
+                <option value="Luz general">Luz general</option>
+                <option value="Internet">Internet</option>
+                <option value="Limpieza">Limpieza</option>
+                <option value="Seguridad">Seguridad</option>
+                <option value="Sueldos">Sueldos</option>
+                <option value="Reparación">Reparación</option>
+                <option value="Compra">Compra</option>
+                <option value="Movilidad">Movilidad</option>
+                <option value="Otros">Otros</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Concepto</label>
+              <input name="concepto" class="form-control" required placeholder="Ej: Compra de focos, reparación de puerta, pago de internet">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Monto (S/)</label>
+              <input type="number" step="0.01" min="0" name="monto" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Método</label>
+              <select name="metodo" class="form-select">
+                <option value="Efectivo">Efectivo</option>
+                <option value="Yape">Yape</option>
+                <option value="Plin">Plin</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Propiedad asociada</label>
+              <select name="propiedad_id" class="form-select">
+                <option value="0">Sin propiedad específica</option>
+                {% for p in propiedades %}
+                <option value="{{ p.id }}">{{ p.tipo }} {{ p.numero }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Observación</label>
+              <textarea name="observacion" class="form-control" rows="3" placeholder="Detalle adicional del gasto"></textarea>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+              <button class="btn btn-credimas" type="submit">
+                <i class="bi bi-check2-circle me-1"></i> Guardar gasto
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTADO -->
+    <div>
+
+      <form class="filters-bar" method="get" action="/gastos">
+        <div class="filter-group">
+          <label class="filter-label">Desde</label>
+          <input type="date" name="desde" class="filter-input" value="{{ desde }}">
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Hasta</label>
+          <input type="date" name="hasta" class="filter-input" value="{{ hasta }}">
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Categoría</label>
+          <select name="categoria" class="filter-select">
+            <option value="">Todas</option>
+            <option value="Mantenimiento" {% if categoria=="Mantenimiento" %}selected{% endif %}>Mantenimiento</option>
+            <option value="Agua general" {% if categoria=="Agua general" %}selected{% endif %}>Agua general</option>
+            <option value="Luz general" {% if categoria=="Luz general" %}selected{% endif %}>Luz general</option>
+            <option value="Internet" {% if categoria=="Internet" %}selected{% endif %}>Internet</option>
+            <option value="Limpieza" {% if categoria=="Limpieza" %}selected{% endif %}>Limpieza</option>
+            <option value="Seguridad" {% if categoria=="Seguridad" %}selected{% endif %}>Seguridad</option>
+            <option value="Sueldos" {% if categoria=="Sueldos" %}selected{% endif %}>Sueldos</option>
+            <option value="Reparación" {% if categoria=="Reparación" %}selected{% endif %}>Reparación</option>
+            <option value="Compra" {% if categoria=="Compra" %}selected{% endif %}>Compra</option>
+            <option value="Movilidad" {% if categoria=="Movilidad" %}selected{% endif %}>Movilidad</option>
+            <option value="Otros" {% if categoria=="Otros" %}selected{% endif %}>Otros</option>
+          </select>
+        </div>
+
+        <button class="btn btn-soft" type="submit">Filtrar</button>
+      </form>
+
+      <div class="expense-card">
+        <div class="expense-card-header">
+          <i class="bi bi-receipt-cutoff me-2"></i> Historial de gastos
+        </div>
+
+        <div class="card-body">
+          <div class="table-pro">
+            <table class="table mb-0">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Categoría</th>
+                  <th>Concepto</th>
+                  <th>Propiedad</th>
+                  <th>Método</th>
+                  <th>Monto</th>
+                  <th class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in items %}
+                <tr>
+                  <td>{{ item.fecha }}</td>
+
+                  <td>
+                    <span class="category-badge">{{ item.categoria }}</span>
+                  </td>
+
+                  <td>
+                    <div class="expense-row-title">{{ item.concepto }}</div>
+                    <div class="mini-note">{{ item.observacion or "-" }}</div>
+                  </td>
+
+                  <td>
+                    {% if item.propiedad %}
+                      {{ item.propiedad.tipo }} {{ item.propiedad.numero }}
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+
+                  <td>{{ item.metodo or "-" }}</td>
+
+                  <td class="amount-expense">S/ {{ "%.2f"|format(item.monto or 0) }}</td>
+
+                  <td class="text-end">
+                    <a href="/gastos/{{ item.id }}/editar" class="btn btn-soft btn-sm">
+                      <i class="bi bi-pencil-square"></i>
+                    </a>
+
+                    <form action="/gastos/{{ item.id }}/eliminar" method="post" class="d-inline"
+                          onsubmit="return confirm('¿Eliminar gasto?');">
+                      <button class="btn btn-danger-soft btn-sm" type="submit">
+                        <i class="bi bi-trash3"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    No hay gastos registrados.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

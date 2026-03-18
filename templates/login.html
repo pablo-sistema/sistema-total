@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-5">
+    <div class="card-pro">
+      <div class="card-header">
+        <i class="bi bi-shield-lock me-2"></i>Acceso CREDIMAS
+      </div>
+      <div class="card-body">
+
+        {% if error %}
+          <div class="alert alert-danger fw-bold">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/login">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Usuario</label>
+            <input name="username" class="form-control" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold">Contraseña</label>
+            <input type="password" name="password" class="form-control" required>
+          </div>
+
+          <button class="btn btn-credimas w-100" type="submit">Ingresar</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

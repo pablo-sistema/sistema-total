@@ -1,0 +1,578 @@
+{% extends "base.html" %}
+{% block title %}Contratos | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .summary-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .summary-card .label{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    letter-spacing:.4px;
+  }
+
+  .summary-card .value{
+    margin-top:8px;
+    font-size:28px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .contract-layout{
+    display:grid;
+    grid-template-columns:380px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .contract-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(290px, 1fr));
+    gap:18px;
+  }
+
+  .contract-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    overflow:hidden;
+    transition:.2s ease;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .contract-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 16px 28px rgba(0,0,0,.14);
+  }
+
+  .contract-top{
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,.10), transparent 30%),
+      linear-gradient(180deg,#1f2937 0%,#111827 100%);
+    color:#fff;
+    padding:18px 16px;
+    min-height:250px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+
+  .contract-badges{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .contract-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.4px;
+    width:max-content;
+  }
+
+  .badge-activo{
+    background:#16a34a;
+    color:#fff;
+  }
+
+  .badge-finalizado{
+    background:#dc2626;
+    color:#fff;
+  }
+
+  .badge-mensual{
+    background:#22c55e;
+    color:#fff;
+  }
+
+  .badge-diario{
+    background:#f59e0b;
+    color:#111827;
+  }
+
+  .contract-main{
+    margin-top:10px;
+  }
+
+  .contract-tenant{
+    font-size:22px;
+    font-weight:900;
+    line-height:1.15;
+    margin-bottom:4px;
+  }
+
+  .contract-property{
+    font-size:14px;
+    color:#e5e7eb;
+    font-weight:700;
+  }
+
+  .contract-info{
+    margin-top:14px;
+    font-size:13px;
+    color:#d1d5db;
+    line-height:1.6;
+  }
+
+  .contract-info strong{
+    color:#fff;
+  }
+
+  .contract-actions{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    padding:12px;
+    background:#fff;
+    border-top:1px solid #f1f5f9;
+  }
+
+  .contract-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    border:none;
+    border-radius:12px;
+    padding:10px 8px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+  }
+
+  .btn-view{
+    background:#111827;
+    color:#fff;
+  }
+
+  .btn-edit{
+    background:#f59e0b;
+    color:#111827;
+  }
+
+  .btn-delete{
+    background:#fee2e2;
+    color:#991b1b;
+    border:1px solid #fecaca;
+  }
+
+  .search-box{
+    margin-bottom:16px;
+  }
+
+  .empty-box{
+    border:2px dashed #d1d5db;
+    border-radius:16px;
+    padding:28px 20px;
+    text-align:center;
+    color:#6b7280;
+    background:#f9fafb;
+    font-weight:700;
+  }
+
+  @media (max-width: 992px){
+    .contract-layout{
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (max-width: 640px){
+    .contract-actions{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Gestión de Contratos</h1>
+      <p>Administra contratos de alquiler mensual y diario de forma clara y visual.</p>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Total contratos</div>
+      <div class="value">{{ contratos|length }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Activos</div>
+      <div class="value">
+        {{ contratos | selectattr("estado", "equalto", "Activo") | list | length }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Finalizados</div>
+      <div class="value">
+        {{ contratos | rejectattr("estado", "equalto", "Activo") | list | length }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Mensuales</div>
+      <div class="value">
+        {{ contratos | selectattr("tipo_alquiler", "equalto", "mensual") | list | length }}
+      </div>
+    </div>
+  </div>
+
+  <div class="contract-layout">
+
+    <!-- FORMULARIO -->
+    <div>
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-file-earmark-plus me-2"></i> Nuevo Contrato
+        </div>
+
+        <div class="card-body">
+          <div class="mb-3 p-3" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;">
+            <div style="font-weight:800;color:#111827;">¿Qué registrarás aquí?</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+              Selecciona el inquilino, la propiedad y las fechas para crear un contrato listo para pagos, cobranza y control del alquiler.
+            </div>
+          </div>
+
+          <form action="/contratos/crear" method="post" class="row g-3">
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Inquilino</label>
+              <select class="form-select" name="inquilino_id" id="contratoInquilino" required>
+                {% for i in inquilinos %}
+                <option value="{{i.id}}" data-nombre="{{ i.nombre }}">
+                  {{i.nombre}} ({{i.dni}})
+                </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">Cliente que ocupará la propiedad.</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Propiedad</label>
+              <select class="form-select" name="propiedad_id" id="contratoPropiedad" required>
+                {% for p in propiedades %}
+                <option value="{{p.id}}" data-propiedad="{{p.tipo}} {{p.numero}}">
+                  {{p.tipo}} {{p.numero}}
+                </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">Unidad que será alquilada.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Fecha inicio</label>
+              <input class="form-control" type="date" name="fecha_inicio" id="contratoInicio" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Fecha fin</label>
+              <input class="form-control" type="date" name="fecha_fin" id="contratoFin" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Tipo alquiler</label>
+              <select class="form-select" name="tipo_alquiler" id="contratoTipo" required>
+                <option value="mensual">Mensual</option>
+                <option value="diario">Diario</option>
+              </select>
+              <div class="form-text">Mensual o cálculo por días.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Monto mensual</label>
+              <input class="form-control" type="number" step="0.01" name="monto_mensual" id="contratoMonto" required>
+              <div class="form-text">Monto base del contrato.</div>
+            </div>
+
+            <div class="col-12">
+              <div style="border:1px dashed #d1d5db;border-radius:14px;padding:14px;background:#fcfcfd;">
+                <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:#6b7280;letter-spacing:.4px;">
+                  Vista previa
+                </div>
+                <div style="margin-top:10px;">
+                  <div style="font-size:20px;font-weight:900;color:#111827;" id="previewInquilino">Inquilino</div>
+                  <div style="font-size:14px;color:#6b7280;font-weight:700;" id="previewPropiedad">Propiedad</div>
+                  <div style="margin-top:6px;font-size:14px;color:#15803d;font-weight:900;" id="previewTipoContrato">Mensual</div>
+                  <div style="margin-top:4px;font-size:14px;color:#111827;font-weight:800;" id="previewMontoContrato">S/ 0.00</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+              <button class="btn btn-credimas" type="submit">
+                <i class="bi bi-check2-circle me-1"></i> Crear Contrato
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <div class="card-pro mt-4">
+        <div class="card-header">
+          <i class="bi bi-info-circle me-2"></i> Cómo funciona
+        </div>
+
+        <div class="card-body small text-muted">
+          <b>Contrato Mensual</b>
+          <ul class="mb-3">
+            <li>El sistema genera alquiler mensual.</li>
+            <li>El cargo es fijo.</li>
+            <li>Puede sumarse agua, luz u otros.</li>
+          </ul>
+
+          <b>Contrato Diario</b>
+          <ul class="mb-0">
+            <li>Se calcula por días.</li>
+            <li>Fórmula base:</li>
+            <li><code>monto mensual / 30 × días</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- TARJETAS -->
+    <div>
+      <div class="card-pro">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span><i class="bi bi-journal-text me-2"></i> Contratos registrados</span>
+          <span id="contadorContratos" class="text-muted small"></span>
+        </div>
+
+        <div class="card-body">
+          <div class="search-box">
+            <input id="buscarContrato" class="form-control" placeholder="Buscar por inquilino, DNI o propiedad">
+          </div>
+
+          {% if contratos|length > 0 %}
+          <div class="contract-grid">
+            {% for c in contratos %}
+            <div class="contract-card contratoRow"
+                 data-search="{{ c.inquilino.nombre|lower }} {{ c.inquilino.dni }} {{ c.propiedad.tipo|lower }} {{ c.propiedad.numero|lower }} {{ c.tipo_alquiler|lower }} {{ c.estado|lower }}">
+
+              <div class="contract-top">
+                <div class="contract-badges">
+                  {% if c.estado == "Activo" %}
+                    <span class="contract-badge badge-activo">
+                      <i class="bi bi-check-circle"></i> Activo
+                    </span>
+                  {% else %}
+                    <span class="contract-badge badge-finalizado">
+                      <i class="bi bi-x-circle"></i> Finalizado
+                    </span>
+                  {% endif %}
+
+                  {% if c.tipo_alquiler == "mensual" %}
+                    <span class="contract-badge badge-mensual">
+                      <i class="bi bi-calendar-event"></i> Mensual
+                    </span>
+                  {% else %}
+                    <span class="contract-badge badge-diario">
+                      <i class="bi bi-clock-history"></i> Diario
+                    </span>
+                  {% endif %}
+                </div>
+
+                <div class="contract-main">
+                  <div class="contract-tenant">{{ c.inquilino.nombre }}</div>
+                  <div class="contract-property">{{ c.propiedad.tipo }} {{ c.propiedad.numero }}</div>
+                </div>
+
+                <div class="contract-info">
+                  <div><strong>ID:</strong> #{{ c.id }}</div>
+                  <div><strong>DNI:</strong> {{ c.inquilino.dni }}</div>
+                  <div><strong>Monto:</strong> S/ {{ "%.2f"|format(c.monto_mensual or 0) }}</div>
+                  <div><strong>Inicio:</strong> {{ c.fecha_inicio }}</div>
+                  <div><strong>Fin:</strong> {{ c.fecha_fin }}</div>
+                </div>
+              </div>
+
+              <div class="contract-actions">
+                <a class="contract-btn btn-view" href="/contratos/{{c.id}}/detalle">Ver</a>
+                <a class="contract-btn btn-edit" href="/contratos/{{c.id}}/editar">Editar</a>
+                <a class="contract-btn btn-dark" href="/contratos/{{c.id}}/contrato.pdf" target="_blank">PDF</a>
+                <form action="/contratos/{{c.id}}/eliminar"
+                      method="post"
+                      onsubmit="return confirm('¿Eliminar contrato?');"
+                      style="margin:0;">
+                  <button class="contract-btn btn-delete" type="submit" style="width:100%;">
+                    Eliminar
+                  </button>
+                </form>
+              </div>
+
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-box">
+            No hay contratos registrados todavía.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+(function(){
+  const buscador = document.getElementById("buscarContrato");
+  const cards = Array.from(document.querySelectorAll(".contratoRow"));
+  const contador = document.getElementById("contadorContratos");
+
+  function actualizarContador(visibles){
+    if(contador){
+      contador.textContent = `Mostrando ${visibles} de ${cards.length} contratos`;
+    }
+  }
+
+  function filtrar(){
+    const texto = (buscador.value || "").toLowerCase().trim();
+    let visibles = 0;
+
+    cards.forEach(card => {
+      const data = (card.dataset.search || "").toLowerCase();
+      const mostrar = !texto || data.includes(texto);
+      card.style.display = mostrar ? "" : "none";
+      if(mostrar) visibles++;
+    });
+
+    actualizarContador(visibles);
+  }
+
+  if(buscador){
+    buscador.addEventListener("input", filtrar);
+  }
+
+  actualizarContrador = actualizarContador;
+  actualizarContador(cards.length);
+})();
+
+(function(){
+  const inquilino = document.getElementById("contratoInquilino");
+  const propiedad = document.getElementById("contratoPropiedad");
+  const tipo = document.getElementById("contratoTipo");
+  const monto = document.getElementById("contratoMonto");
+
+  const previewInquilino = document.getElementById("previewInquilino");
+  const previewPropiedad = document.getElementById("previewPropiedad");
+  const previewTipoContrato = document.getElementById("previewTipoContrato");
+  const previewMontoContrato = document.getElementById("previewMontoContrato");
+
+  function actualizarPreview(){
+    const inqText = inquilino?.options[inquilino.selectedIndex]?.text || "Inquilino";
+    const propText = propiedad?.options[propiedad.selectedIndex]?.text || "Propiedad";
+    const tipoText = tipo?.value === "diario" ? "Diario" : "Mensual";
+    const montoVal = parseFloat(monto?.value || "0");
+
+    if(previewInquilino) previewInquilino.textContent = inqText;
+    if(previewPropiedad) previewPropiedad.textContent = propText;
+    if(previewTipoContrato) previewTipoContrato.textContent = tipoText;
+    if(previewMontoContrato) previewMontoContrato.textContent = montoVal > 0 ? `S/ ${montoVal.toFixed(2)}` : "S/ 0.00";
+  }
+
+  if(inquilino) inquilino.addEventListener("change", actualizarPreview);
+  if(propiedad) propiedad.addEventListener("change", actualizarPreview);
+  if(tipo) tipo.addEventListener("change", actualizarPreview);
+  if(monto) monto.addEventListener("input", actualizarPreview);
+
+  actualizarPreview();
+})();
+</script>
+
+<script>
+
+document.getElementById("formNuevoInquilino").onsubmit = async function(e){
+
+    e.preventDefault()
+
+    let formData = new FormData(this)
+
+    let res = await fetch("/inquilinos/ajax-crear",{
+        method:"POST",
+        body:formData
+    })
+
+    let data = await res.json()
+
+    if(data.ok){
+
+        let select = document.getElementById("select_inquilino")
+
+        let option = document.createElement("option")
+        option.value = data.id
+        option.text = data.nombre
+        option.selected = true
+
+        select.appendChild(option)
+
+        bootstrap.Modal.getInstance(
+            document.getElementById("modalNuevoInquilino")
+        ).hide()
+
+    }
+
+}
+
+</script>
+
+{% endblock %}

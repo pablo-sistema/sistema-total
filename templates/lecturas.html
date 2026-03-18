@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+{% block title %}Lecturas | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .summary-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .summary-card .label{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    letter-spacing:.4px;
+  }
+
+  .summary-card .value{
+    margin-top:8px;
+    font-size:28px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .reading-layout{
+    display:grid;
+    grid-template-columns:390px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .reading-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(290px, 1fr));
+    gap:18px;
+  }
+
+  .reading-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    overflow:hidden;
+    transition:.2s ease;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .reading-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 16px 28px rgba(0,0,0,.14);
+  }
+
+  .reading-top{
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,.10), transparent 30%),
+      linear-gradient(180deg,#1f2937 0%,#111827 100%);
+    color:#fff;
+    padding:18px 16px;
+    min-height:240px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+
+  .reading-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.4px;
+    width:max-content;
+  }
+
+  .badge-luz{
+    background:#f59e0b;
+    color:#111827;
+  }
+
+  .badge-agua{
+    background:#64748b;
+    color:#fff;
+  }
+
+  .reading-main{
+    margin-top:10px;
+  }
+
+  .reading-tenant{
+    font-size:22px;
+    font-weight:900;
+    line-height:1.15;
+    margin-bottom:4px;
+  }
+
+  .reading-property{
+    font-size:14px;
+    color:#e5e7eb;
+    font-weight:700;
+  }
+
+  .reading-info{
+    margin-top:14px;
+    font-size:13px;
+    color:#d1d5db;
+    line-height:1.6;
+  }
+
+  .reading-info strong{
+    color:#fff;
+  }
+
+  .reading-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+    padding:12px;
+    background:#fff;
+    border-top:1px solid #f1f5f9;
+  }
+
+  .reading-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    border:none;
+    border-radius:12px;
+    padding:10px 8px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+  }
+
+  .btn-delete{
+    background:#fee2e2;
+    color:#991b1b;
+    border:1px solid #fecaca;
+  }
+
+  .helper-box{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+
+  .preview-box{
+    border:1px dashed #d1d5db;
+    border-radius:14px;
+    padding:14px;
+    background:#fcfcfd;
+  }
+
+  .search-box{
+    margin-bottom:14px;
+  }
+
+  .empty-box{
+    border:2px dashed #d1d5db;
+    border-radius:16px;
+    padding:28px 20px;
+    text-align:center;
+    color:#6b7280;
+    background:#f9fafb;
+    font-weight:700;
+  }
+
+  @media (max-width: 992px){
+    .reading-layout{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Lecturas de Servicios</h1>
+      <p>Registra el consumo de luz y agua para generar cargos de forma clara y ordenada.</p>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Lecturas registradas</div>
+      <div class="value">{{ lecturas|length }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Luz</div>
+      <div class="value">
+        {{ lecturas | selectattr("servicio", "equalto", "Luz") | list | length }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Agua</div>
+      <div class="value">
+        {{ lecturas | selectattr("servicio", "equalto", "Agua") | list | length }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Periodo actual</div>
+      <div class="value" style="font-size:20px;">{{ periodo }}</div>
+    </div>
+  </div>
+
+  <div class="reading-layout">
+
+    <!-- FORMULARIO -->
+    <div>
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-lightning-charge me-2"></i> Registrar Lectura
+        </div>
+
+        <div class="card-body">
+
+          <div class="helper-box">
+            <div style="font-weight:800;color:#111827;">¿Qué registrarás aquí?</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+              Selecciona el contrato, el servicio y las lecturas. El sistema calculará el consumo y el monto automáticamente.
+            </div>
+          </div>
+
+          <form action="/lecturas/crear" method="post" class="row g-3">
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Contrato</label>
+              <select name="contrato_id" id="lecturaContrato" class="form-select" required>
+                {% for c in contratos %}
+                <option value="{{c.id}}" data-contrato="{{ c.inquilino.nombre }} | {{ c.propiedad.tipo }} {{ c.propiedad.numero }}">
+                  {{c.inquilino.nombre}} | {{c.propiedad.tipo}} {{c.propiedad.numero}}
+                </option>
+                {% endfor %}
+              </select>
+              <div class="form-text">Selecciona la unidad que registrarás.</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Servicio</label>
+              <select name="servicio" id="lecturaServicio" class="form-select">
+                <option value="Luz">Luz</option>
+                <option value="Agua">Agua</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Periodo</label>
+              <input name="periodo" id="lecturaPeriodo" value="{{periodo}}" class="form-control" required>
+              <div class="form-text">Ejemplo: 2026-03</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Lectura anterior</label>
+              <input type="number" step="0.01" name="lectura_anterior" id="lecturaAnterior" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Lectura actual</label>
+              <input type="number" step="0.01" name="lectura_actual" id="lecturaActual" class="form-control" required>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Tarifa por unidad</label>
+              <input type="number" step="0.01" name="tarifa" id="lecturaTarifa" class="form-control" required>
+              <div class="form-text">Ejemplo: costo por kWh o por m³.</div>
+            </div>
+
+            <div class="col-12">
+              <div class="preview-box">
+                <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:#6b7280;letter-spacing:.4px;">
+                  Vista previa
+                </div>
+                <div style="margin-top:10px;">
+                  <div style="font-size:18px;font-weight:900;color:#111827;" id="previewContrato">Contrato seleccionado</div>
+                  <div style="font-size:14px;color:#6b7280;font-weight:700;" id="previewServicio">Servicio</div>
+                  <div style="margin-top:6px;font-size:14px;color:#111827;font-weight:800;" id="previewConsumo">Consumo: 0.00</div>
+                  <div style="margin-top:4px;font-size:14px;color:#15803d;font-weight:900;" id="previewMonto">Monto: S/ 0.00</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+              <button class="btn btn-credimas">
+                <i class="bi bi-check-circle me-1"></i> Guardar lectura
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div>
+      <div class="card-pro">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span><i class="bi bi-table me-2"></i> Historial de Lecturas</span>
+          <span id="contadorLecturas" class="text-muted small"></span>
+        </div>
+
+        <div class="card-body">
+
+          {% if lecturas|length > 0 %}
+          <div class="reading-grid">
+            {% for l in lecturas %}
+            <div class="reading-card lecturaRow"
+                 data-search="{{ l.contrato.inquilino.nombre|lower }} {{ l.contrato.propiedad.numero|lower }} {{ l.servicio|lower }} {{ l.periodo|lower }}">
+
+              <div class="reading-top">
+                <div>
+                  {% if l.servicio == "Luz" %}
+                    <span class="reading-badge badge-luz">⚡ Luz</span>
+                  {% else %}
+                    <span class="reading-badge badge-agua">💧 Agua</span>
+                  {% endif %}
+                </div>
+
+                <div class="reading-main">
+                  <div class="reading-tenant">{{ l.contrato.inquilino.nombre }}</div>
+                  <div class="reading-property">{{ l.contrato.propiedad.tipo }} {{ l.contrato.propiedad.numero }}</div>
+                </div>
+
+                <div class="reading-info">
+                  <div><strong>ID:</strong> #{{ l.id }}</div>
+                  <div><strong>Periodo:</strong> {{ l.periodo }}</div>
+                  <div><strong>Consumo:</strong> {{ l.consumo }}</div>
+                  <div><strong>Monto:</strong> S/ {{ "%.2f"|format(l.monto) }}</div>
+                </div>
+              </div>
+
+              <div class="reading-actions">
+                <form method="post"
+                      action="/lecturas/{{l.id}}/eliminar"
+                      onsubmit="return confirm('¿Eliminar lectura?')"
+                      style="margin:0;">
+                  <button class="reading-btn btn-delete" type="submit" style="width:100%;">
+                    Eliminar
+                  </button>
+                </form>
+              </div>
+
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-box">
+            No hay lecturas registradas todavía.
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+(function(){
+  const contrato = document.getElementById("lecturaContrato");
+  const servicio = document.getElementById("lecturaServicio");
+  const anterior = document.getElementById("lecturaAnterior");
+  const actual = document.getElementById("lecturaActual");
+  const tarifa = document.getElementById("lecturaTarifa");
+
+  const previewContrato = document.getElementById("previewContrato");
+  const previewServicio = document.getElementById("previewServicio");
+  const previewConsumo = document.getElementById("previewConsumo");
+  const previewMonto = document.getElementById("previewMonto");
+
+  function actualizarPreview(){
+    const contratoText = contrato?.options[contrato.selectedIndex]?.dataset?.contrato || "Contrato seleccionado";
+    const servicioText = servicio?.value || "Servicio";
+
+    const ant = parseFloat(anterior?.value || "0");
+    const act = parseFloat(actual?.value || "0");
+    const tar = parseFloat(tarifa?.value || "0");
+
+    const consumo = act > ant ? (act - ant) : 0;
+    const monto = consumo * tar;
+
+    if(previewContrato) previewContrato.textContent = contratoText;
+    if(previewServicio) previewServicio.textContent = "Servicio: " + servicioText;
+    if(previewConsumo) previewConsumo.textContent = "Consumo: " + consumo.toFixed(2);
+    if(previewMonto) previewMonto.textContent = "Monto: S/ " + monto.toFixed(2);
+  }
+
+  if(contrato) contrato.addEventListener("change", actualizarPreview);
+  if(servicio) servicio.addEventListener("change", actualizarPreview);
+  if(anterior) anterior.addEventListener("input", actualizarPreview);
+  if(actual) actual.addEventListener("input", actualizarPreview);
+  if(tarifa) tarifa.addEventListener("input", actualizarPreview);
+
+  actualizarPreview();
+})();
+
+(function(){
+  const cards = Array.from(document.querySelectorAll(".lecturaRow"));
+  const contador = document.getElementById("contadorLecturas");
+
+  function actualizarContador(){
+    if(contador){
+      contador.textContent = `Mostrando ${cards.length} lecturas registradas`;
+    }
+  }
+
+  actualizarContador();
+})();
+</script>
+{% endblock %}

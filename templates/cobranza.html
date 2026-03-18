@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% block title %}Cobranza | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+  .module-header{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:18px; flex-wrap:wrap; margin-bottom:22px;
+  }
+  .module-title h1{
+    margin:0; font-size:36px; line-height:1.05; font-weight:900;
+    color:#7f1d1d; letter-spacing:-1px;
+  }
+  .module-title p{ margin:8px 0 0; color:#6b7280; font-size:14px; }
+
+  .summary-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px; margin-bottom:22px;
+  }
+  .summary-card{
+    background:#fff; border:1px solid #e5e7eb; border-radius:18px;
+    padding:16px; box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+  .summary-card .label{
+    font-size:12px; font-weight:800; text-transform:uppercase;
+    color:#6b7280; letter-spacing:.4px;
+  }
+  .summary-card .value{
+    margin-top:8px; font-size:24px; font-weight:900; color:#111827;
+  }
+
+  .filters-bar{
+    background:#fff; border:1px solid #e5e7eb; border-radius:18px;
+    padding:14px; box-shadow:0 8px 18px rgba(0,0,0,.05);
+    margin-bottom:18px; display:grid;
+    grid-template-columns:1.2fr .8fr auto; gap:12px; align-items:end;
+  }
+  .filter-group{ display:flex; flex-direction:column; gap:6px; }
+  .filter-label{
+    font-size:12px; font-weight:800; color:#6b7280;
+    text-transform:uppercase; letter-spacing:.4px;
+  }
+  .filter-input,.filter-select{
+    width:100%; border:1px solid #d1d5db; border-radius:12px;
+    padding:11px 12px; font-size:14px; outline:none; background:#fff;
+  }
+  .btn-clear{
+    height:44px; border:none; border-radius:12px; background:#111827;
+    color:#fff; font-weight:800; cursor:pointer; padding:0 16px;
+  }
+
+  .cases-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px;
+  }
+  .case-card{
+    background:#fff; border:1px solid #e5e7eb; border-radius:20px;
+    overflow:hidden; box-shadow:0 8px 20px rgba(0,0,0,.06); transition:.2s ease;
+  }
+  .case-card:hover{ transform:translateY(-2px); box-shadow:0 14px 24px rgba(0,0,0,.10); }
+
+  .case-top{
+    background:linear-gradient(180deg,#1f2937 0%,#111827 100%);
+    color:#fff; padding:16px;
+  }
+
+  .case-badge{
+    display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
+    border-radius:999px; font-size:11px; font-weight:900; letter-spacing:.3px;
+    margin-bottom:12px;
+  }
+  .badge-moroso{ background:#7f1d1d; color:#fff; }
+  .badge-parcial{ background:#2563eb; color:#fff; }
+  .badge-hoy{ background:#f59e0b; color:#111827; }
+  .badge-pendiente{ background:#374151; color:#fff; }
+
+  .case-name{ font-size:22px; font-weight:900; line-height:1.1; margin-bottom:6px; }
+  .case-sub{ color:#d1d5db; font-size:13px; line-height:1.5; }
+
+  .case-body{ padding:16px; }
+  .debt-box{
+    background:#fff7ed; border:1px solid #fed7aa; border-radius:16px;
+    padding:12px; margin-bottom:14px;
+  }
+  .debt-total{ font-size:24px; font-weight:900; color:#b91c1c; }
+  .debt-sub{ color:#7c2d12; font-size:13px; }
+
+  .debt-breakdown{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;
+  }
+  .debt-item{
+    background:#f9fafb; border:1px solid #e5e7eb; border-radius:14px; padding:12px;
+  }
+  .debt-item .label{
+    font-size:11px; font-weight:800; text-transform:uppercase; color:#6b7280; margin-bottom:5px;
+  }
+  .debt-item .value{ font-size:14px; font-weight:800; color:#111827; }
+
+  .case-meta{
+    background:#f9fafb; border:1px solid #e5e7eb; border-radius:14px; padding:12px; margin-bottom:14px;
+    font-size:13px; color:#374151; line-height:1.6;
+  }
+
+  .case-actions{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
+  }
+  .case-btn{
+    display:flex; align-items:center; justify-content:center; text-decoration:none;
+    border:none; border-radius:12px; padding:10px 8px; font-size:12px; font-weight:900;
+    cursor:pointer; min-height:40px;
+  }
+  .btn-wa{ background:#25D366; color:#fff; }
+  .btn-dark{ background:#111827; color:#fff; }
+  .btn-soft2{ background:#f3f4f6; color:#111827; border:1px solid #e5e7eb; }
+
+  .results-info{ margin-top:14px; font-size:13px; color:#6b7280; text-align:right; }
+  .no-results{
+    display:none; margin-top:18px; border:2px dashed #d1d5db; border-radius:16px;
+    padding:28px 20px; text-align:center; color:#6b7280; background:#f9fafb; font-weight:700;
+  }
+  .no-results.show{ display:block; }
+
+  @media (max-width:900px){
+    .filters-bar{ grid-template-columns:1fr; }
+    .case-actions{ grid-template-columns:1fr 1fr; }
+  }
+</style>
+
+<div class="module-board">
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Panel de Cobranza</h1>
+      <p>Gestiona rápidamente deudores, vencimientos y recordatorios de pago.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="/cobranza/bitacora" class="btn btn-soft">
+        <i class="bi bi-clock-history me-1"></i> Ver bitácora
+      </a>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Casos activos</div>
+      <div class="value">{{ total_casos }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Morosos</div>
+      <div class="value">{{ total_morosos }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Vencen hoy</div>
+      <div class="value">{{ total_vence_hoy }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Deuda total</div>
+      <div class="value">S/ {{ "%.2f"|format(deuda_total_general) }}</div>
+    </div>
+  </div>
+
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label class="filter-label">Buscar</label>
+      <input type="text" id="searchInput" class="filter-input"
+             placeholder="Buscar por inquilino o propiedad..."
+             oninput="filtrarCobranza()">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Tipo alerta</label>
+      <select id="tipoFilter" class="filter-select" onchange="filtrarCobranza()">
+        <option value="todos">Todos</option>
+        <option value="moroso">Moroso</option>
+        <option value="pago parcial">Pago parcial</option>
+        <option value="vence hoy">Vence hoy</option>
+        <option value="pendiente">Pendiente</option>
+      </select>
+    </div>
+
+    <button class="btn-clear" type="button" onclick="limpiarFiltros()">Limpiar</button>
+  </div>
+
+  <div class="cases-grid">
+    {% for item in items %}
+      {% set tipo = item.tipo_alerta %}
+      <div class="case-card case-item"
+           data-search="{{ (item.inquilino or '')|lower }} {{ (item.propiedad or '')|lower }}"
+           data-tipo="{{ (tipo or '')|lower }}">
+
+        <div class="case-top">
+          {% if tipo == "Moroso" %}
+            <span class="case-badge badge-moroso"><i class="bi bi-exclamation-triangle-fill"></i> Moroso</span>
+          {% elif tipo == "Pago parcial" %}
+            <span class="case-badge badge-parcial"><i class="bi bi-wallet2"></i> Pago parcial</span>
+          {% elif tipo == "Vence hoy" %}
+            <span class="case-badge badge-hoy"><i class="bi bi-calendar-event"></i> Vence hoy</span>
+          {% else %}
+            <span class="case-badge badge-pendiente"><i class="bi bi-bell"></i> Pendiente</span>
+          {% endif %}
+
+          <div class="case-name">{{ item.inquilino }}</div>
+          <div class="case-sub">{{ item.propiedad }}</div>
+        </div>
+
+        <div class="case-body">
+          <div class="debt-box">
+            <div class="debt-total">S/ {{ "%.2f"|format(item.deuda_total) }}</div>
+            <div class="debt-sub">Deuda total pendiente</div>
+          </div>
+
+          <div class="debt-breakdown">
+            <div class="debt-item">
+              <div class="label">Alquiler</div>
+              <div class="value">S/ {{ "%.2f"|format(item.deuda_alquiler) }}</div>
+            </div>
+            <div class="debt-item">
+              <div class="label">Agua</div>
+              <div class="value">S/ {{ "%.2f"|format(item.deuda_agua) }}</div>
+            </div>
+            <div class="debt-item">
+              <div class="label">Luz</div>
+              <div class="value">S/ {{ "%.2f"|format(item.deuda_luz) }}</div>
+            </div>
+            <div class="debt-item">
+              <div class="label">Otros</div>
+              <div class="value">S/ {{ "%.2f"|format(item.deuda_otros) }}</div>
+            </div>
+          </div>
+
+          <div class="case-meta">
+            <div><strong>Teléfono:</strong> {{ item.telefono or "-" }}</div>
+            <div><strong>Próximo vencimiento:</strong> {{ item.proximo_vencimiento or "-" }}</div>
+          </div>
+
+          <div class="case-actions">
+            <a href="/contratos/{{ item.contrato_id }}/whatsapp_recordatorio" target="_blank" class="case-btn btn-wa">WhatsApp</a>
+            <a href="/contratos/{{ item.contrato_id }}/detalle" class="case-btn btn-dark">Contrato</a>
+            <a href="/inquilinos/{{ item.inquilino_id }}/detalle" class="case-btn btn-soft2">Inquilino</a>
+            <a href="/cobranza/bitacora" class="case-btn btn-soft2">Bitácora</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="results-info" id="resultsInfo"></div>
+  <div class="no-results" id="noResults">No se encontraron casos con esos filtros.</div>
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+(function(){
+  const items = Array.from(document.querySelectorAll(".case-item"));
+  const searchInput = document.getElementById("searchInput");
+  const tipoFilter = document.getElementById("tipoFilter");
+  const resultsInfo = document.getElementById("resultsInfo");
+  const noResults = document.getElementById("noResults");
+
+  window.filtrarCobranza = function(){
+    const texto = (searchInput?.value || "").toLowerCase().trim();
+    const tipo = (tipoFilter?.value || "todos").toLowerCase();
+
+    let visibles = 0;
+
+    items.forEach(item => {
+      const search = (item.dataset.search || "").toLowerCase();
+      const tipoItem = (item.dataset.tipo || "").toLowerCase();
+
+      const coincideTexto = !texto || search.includes(texto);
+      const coincideTipo = tipo === "todos" || tipoItem === tipo;
+
+      const mostrar = coincideTexto && coincideTipo;
+      item.style.display = mostrar ? "" : "none";
+      if(mostrar) visibles++;
+    });
+
+    if(resultsInfo) resultsInfo.textContent = `${visibles} caso(s) visibles`;
+    if(noResults) noResults.classList.toggle("show", visibles === 0);
+  }
+
+  window.limpiarFiltros = function(){
+    if(searchInput) searchInput.value = "";
+    if(tipoFilter) tipoFilter.value = "todos";
+    filtrarCobranza();
+  }
+
+  filtrarCobranza();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+{% block title %}Detalle de Inquilino | CREDIMAS{% endblock %}
+
+{% block content %}
+<style>
+    .detalle-page{
+        max-width:1280px;
+        margin:0 auto;
+    }
+
+    .detalle-top{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:16px;
+        flex-wrap:wrap;
+        margin-bottom:22px;
+    }
+
+    .detalle-title h1{
+        margin:0;
+        font-size:36px;
+        font-weight:900;
+        color:#7f1d1d;
+        letter-spacing:-0.8px;
+        line-height:1.05;
+    }
+
+    .detalle-title p{
+        margin:8px 0 0;
+        color:#6b7280;
+        font-size:14px;
+    }
+
+    .top-actions{
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+    }
+
+    .btn-detail{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        padding:11px 16px;
+        text-decoration:none;
+        border-radius:12px;
+        font-weight:800;
+        border:none;
+        cursor:pointer;
+    }
+
+    .btn-back{
+        background:#b91c1c;
+        color:#fff;
+        box-shadow:0 8px 16px rgba(185, 28, 28, 0.18);
+    }
+
+    .btn-green{
+        background:#15803d;
+        color:#fff;
+    }
+
+    .btn-dark{
+        background:#1f2937;
+        color:#fff;
+    }
+
+    .btn-yellow{
+        background:#f59e0b;
+        color:#111827;
+    }
+
+    .summary-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+        gap:14px;
+        margin-bottom:20px;
+    }
+
+    .summary-card{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:18px;
+        padding:16px;
+        box-shadow:0 8px 20px rgba(0,0,0,.06);
+    }
+
+    .summary-card .label{
+        font-size:12px;
+        font-weight:800;
+        text-transform:uppercase;
+        color:#6b7280;
+        letter-spacing:.4px;
+    }
+
+    .summary-card .value{
+        margin-top:8px;
+        font-size:24px;
+        font-weight:900;
+        color:#111827;
+    }
+
+    .value-danger{
+        color:#b91c1c !important;
+    }
+
+    .value-success{
+        color:#15803d !important;
+    }
+
+    .hero-card{
+        background:
+            radial-gradient(circle at top left, rgba(255,255,255,0.10), transparent 25%),
+            linear-gradient(180deg, #1f2937 0%, #111827 100%);
+        color:#fff;
+        border-radius:22px;
+        padding:24px;
+        box-shadow:0 16px 32px rgba(0,0,0,0.14);
+        margin-bottom:20px;
+        overflow:hidden;
+    }
+
+    .hero-grid{
+        display:grid;
+        grid-template-columns:220px 1fr;
+        gap:24px;
+        align-items:center;
+    }
+
+    .hero-person{
+        background:rgba(255,255,255,0.06);
+        border:1px solid rgba(255,255,255,0.10);
+        border-radius:22px;
+        padding:24px 16px;
+        text-align:center;
+    }
+
+    .hero-avatar{
+        width:88px;
+        height:88px;
+        border-radius:50%;
+        margin:0 auto 12px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:rgba(255,255,255,0.12);
+        font-size:34px;
+        font-weight:900;
+    }
+
+    .hero-person-name{
+        font-size:24px;
+        font-weight:900;
+        line-height:1.1;
+    }
+
+    .hero-person-doc{
+        margin-top:6px;
+        color:#e5e7eb;
+        font-size:14px;
+        font-weight:700;
+    }
+
+    .hero-info-grid{
+        display:grid;
+        grid-template-columns:repeat(4, minmax(160px, 1fr));
+        gap:14px;
+    }
+
+    .hero-info-box{
+        background:rgba(255,255,255,0.06);
+        border:1px solid rgba(255,255,255,0.08);
+        border-radius:16px;
+        padding:14px 16px;
+    }
+
+    .hero-info-box .label{
+        font-size:11px;
+        text-transform:uppercase;
+        letter-spacing:.6px;
+        color:#d1d5db;
+        font-weight:800;
+        margin-bottom:6px;
+    }
+
+    .hero-info-box .value{
+        font-size:18px;
+        font-weight:900;
+        color:#fff;
+    }
+
+    .hero-note{
+        margin-top:14px;
+        font-size:13px;
+        color:#d1d5db;
+        line-height:1.6;
+    }
+
+    .detalle-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:18px;
+        margin-bottom:18px;
+    }
+
+    .card-detail{
+        background:#fff;
+        border:1px solid #e5e7eb;
+        border-radius:20px;
+        overflow:hidden;
+        box-shadow:0 10px 22px rgba(0,0,0,0.06);
+    }
+
+    .card-detail-header{
+        padding:16px 18px;
+        border-bottom:1px solid #e5e7eb;
+        background:linear-gradient(180deg, #fff7f7 0%, #fff 100%);
+        color:#7f1d1d;
+        font-weight:900;
+        font-size:18px;
+    }
+
+    .card-detail-body{
+        padding:18px;
+    }
+
+    .section-note{
+        font-size:13px;
+        color:#6b7280;
+        margin-bottom:12px;
+    }
+
+    .datos-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:14px;
+    }
+
+    .dato-box{
+        background:#f9fafb;
+        border:1px solid #e5e7eb;
+        border-radius:14px;
+        padding:14px;
+    }
+
+    .dato-box .label{
+        font-size:11px;
+        text-transform:uppercase;
+        letter-spacing:.5px;
+        color:#6b7280;
+        font-weight:800;
+        margin-bottom:6px;
+    }
+
+    .dato-box .value{
+        font-size:15px;
+        font-weight:800;
+        color:#111827;
+        line-height:1.4;
+        word-break:break-word;
+    }
+
+    .stack-list{
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+    }
+
+    .stack-item{
+        border:1px solid #e5e7eb;
+        background:#f9fafb;
+        border-radius:16px;
+        padding:14px;
+    }
+
+    .stack-item strong{
+        color:#111827;
+    }
+
+    .stack-item .muted{
+        color:#6b7280;
+        font-size:13px;
+        margin-top:4px;
+        line-height:1.5;
+    }
+
+    .saldo{
+        color:#b91c1c;
+        font-weight:900;
+    }
+
+    .monto-ok{
+        color:#15803d;
+        font-weight:900;
+    }
+
+    .empty-box{
+        border:2px dashed #d1d5db;
+        background:#f9fafb;
+        border-radius:16px;
+        padding:30px 18px;
+        text-align:center;
+        color:#6b7280;
+        font-weight:600;
+    }
+
+    .full-card{
+        margin-top:18px;
+    }
+
+    @media (max-width:1100px){
+        .hero-info-grid{
+            grid-template-columns:repeat(2, minmax(160px, 1fr));
+        }
+    }
+
+    @media (max-width:980px){
+        .hero-grid,
+        .detalle-grid,
+        .datos-grid{
+            grid-template-columns:1fr;
+        }
+    }
+</style>
+
+<div class="detalle-page">
+
+    <div class="detalle-top">
+        <div class="detalle-title">
+            <h1>Detalle de Inquilino</h1>
+            <p>Consulta rápida del cliente, contratos, deuda, pagos y cobranza.</p>
+        </div>
+
+        <div class="top-actions">
+            <a href="/inquilinos" class="btn-detail btn-back">← Volver</a>
+            <a href="/pagos?q={{ inquilino.dni }}" class="btn-detail btn-green">Cobrar</a>
+            <a href="/inquilinos/{{ inquilino.id }}/editar" class="btn-detail btn-dark">Editar</a>
+            <a href="/whatsapp/recordatorio/{{ inquilino.id }}" class="btn-detail btn-yellow" target="_blank">WhatsApp</a>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="label">Estado</div>
+            <div class="value">{{ inquilino.estado or "-" }}</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="label">Contratos</div>
+            <div class="value">{{ contratos|length }}</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="label">Deuda total</div>
+            <div class="value {% if deuda_total and deuda_total > 0 %}value-danger{% else %}value-success{% endif %}">
+                S/ {{ "%.2f"|format(deuda_total or 0) }}
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="label">Pagos registrados</div>
+            <div class="value">{{ pagos_recientes|length }}</div>
+        </div>
+    </div>
+
+    <div class="hero-card">
+        <div class="hero-grid">
+            <div class="hero-person">
+                <div class="hero-avatar">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div class="hero-person-name">{{ inquilino.nombre }}</div>
+                <div class="hero-person-doc">DNI: {{ inquilino.dni }}</div>
+            </div>
+
+            <div>
+                <div class="hero-info-grid">
+                    <div class="hero-info-box">
+                        <div class="label">Teléfono</div>
+                        <div class="value">{{ inquilino.telefono or "-" }}</div>
+                    </div>
+
+                    <div class="hero-info-box">
+                        <div class="label">WhatsApp</div>
+                        <div class="value">{{ inquilino.whatsapp or "-" }}</div>
+                    </div>
+
+                    <div class="hero-info-box">
+                        <div class="label">Estado</div>
+                        <div class="value">{{ inquilino.estado or "-" }}</div>
+                    </div>
+
+                    <div class="hero-info-box">
+                        <div class="label">Saldo pendiente</div>
+                        <div class="value">S/ {{ "%.2f"|format(deuda_total or 0) }}</div>
+                    </div>
+                </div>
+
+                <div class="hero-note">
+                    Esta vista te permite revisar la situación completa del cliente: contratos, deuda pendiente, pagos recientes y actividad de cobranza.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detalle-grid">
+        <div class="card-detail">
+            <div class="card-detail-header">Datos del inquilino</div>
+            <div class="card-detail-body">
+                <div class="section-note">
+                    Información general del cliente registrada en el sistema.
+                </div>
+                <div class="datos-grid">
+                    <div class="dato-box">
+                        <div class="label">Nombre</div>
+                        <div class="value">{{ inquilino.nombre }}</div>
+                    </div>
+                    <div class="dato-box">
+                        <div class="label">DNI</div>
+                        <div class="value">{{ inquilino.dni }}</div>
+                    </div>
+                    <div class="dato-box">
+                        <div class="label">Teléfono</div>
+                        <div class="value">{{ inquilino.telefono or "-" }}</div>
+                    </div>
+                    <div class="dato-box">
+                        <div class="label">WhatsApp</div>
+                        <div class="value">{{ inquilino.whatsapp or "-" }}</div>
+                    </div>
+                    <div class="dato-box" style="grid-column:1 / -1;">
+                        <div class="label">Estado</div>
+                        <div class="value">{{ inquilino.estado or "-" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-detail">
+            <div class="card-detail-header">Contratos del inquilino</div>
+            <div class="card-detail-body">
+                {% if contratos %}
+                    <div class="section-note">
+                        Contratos asociados a este cliente, activos o históricos.
+                    </div>
+                    <div class="stack-list">
+                        {% for c in contratos %}
+                        <div class="stack-item">
+                            <strong>{{ c.propiedad.tipo }} {{ c.propiedad.numero }}</strong>
+                            <div class="muted">
+                                Tipo: {{ c.tipo_alquiler or "-" }}<br>
+                                Inicio: {{ c.fecha_inicio }}<br>
+                                Fin: {{ c.fecha_fin }}<br>
+                                Estado: {{ c.estado }}
+                            </div>
+                            <div class="muted">
+                                Monto:
+                                <span class="monto-ok">S/ {{ "%.2f"|format(c.monto_mensual or 0) }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-box">Este inquilino no tiene contratos registrados.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="detalle-grid">
+        <div class="card-detail">
+            <div class="card-detail-header">Cargos pendientes</div>
+            <div class="card-detail-body">
+                {% if cargos_pendientes %}
+                    <div class="section-note">
+                        Deudas activas del cliente en cualquiera de sus contratos.
+                    </div>
+                    <div class="stack-list">
+                        {% for c in cargos_pendientes %}
+                        <div class="stack-item">
+                            <strong>{{ c.contrato.propiedad.tipo }} {{ c.contrato.propiedad.numero }} — {{ c.concepto }}</strong>
+                            <div class="muted">
+                                Periodo: {{ c.periodo }}<br>
+                                Vencimiento: {{ c.vencimiento }}
+                            </div>
+                            <div class="muted">
+                                Saldo:
+                                <span class="saldo">S/ {{ "%.2f"|format((c.monto or 0) - (c.pagado_acumulado or 0)) }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-box">No hay cargos pendientes para este inquilino.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card-detail">
+            <div class="card-detail-header">Bitácora de cobranza</div>
+            <div class="card-detail-body">
+                {% if bitacora %}
+                    <div class="section-note">
+                        Últimos mensajes de cobranza enviados al cliente.
+                    </div>
+                    <div class="stack-list">
+                        {% for b in bitacora %}
+                        <div class="stack-item">
+                            <strong>{{ b.fecha_envio }} — {{ b.tipo_mensaje }}</strong>
+                            <div class="muted">
+                                Deuda registrada:
+                                <span class="saldo">S/ {{ "%.2f"|format(b.deuda_total or 0) }}</span>
+                            </div>
+                            <div class="muted">Teléfono: {{ b.telefono or "-" }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-box">No hay mensajes de cobranza registrados.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card-detail full-card">
+        <div class="card-detail-header">Últimos pagos registrados</div>
+        <div class="card-detail-body">
+            {% if pagos_recientes %}
+                <div class="section-note">
+                    Últimos pagos aplicados al cliente.
+                </div>
+                <div class="stack-list">
+                    {% for p in pagos_recientes %}
+                    <div class="stack-item">
+                        <strong>{{ p.fecha_pago }} — {{ p.contrato.propiedad.tipo }} {{ p.contrato.propiedad.numero }}</strong>
+                        <div class="muted">Método: {{ p.metodo }}</div>
+                        <div class="muted">
+                            Pago:
+                            <span class="monto-ok">S/ {{ "%.2f"|format(p.monto or 0) }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-box">No hay pagos registrados para este inquilino.</div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

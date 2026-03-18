@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+{% block title %}Editar Inquilino | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:22px;
+  }
+
+  .summary-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+  }
+
+  .summary-card .label{
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
+    color:#6b7280;
+    letter-spacing:.4px;
+  }
+
+  .summary-card .value{
+    margin-top:8px;
+    font-size:24px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .edit-layout{
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .helper-box{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+
+  .preview-wrap{
+    position:sticky;
+    top:90px;
+  }
+
+  .tenant-card-preview{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    overflow:hidden;
+  }
+
+  .tenant-preview-top{
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,.10), transparent 30%),
+      linear-gradient(180deg,#1f2937 0%,#111827 100%);
+    color:#fff;
+    padding:20px 18px;
+    min-height:240px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+
+  .tenant-avatar{
+    width:74px;
+    height:74px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(255,255,255,.12);
+    font-size:30px;
+    font-weight:900;
+  }
+
+  .tenant-name{
+    font-size:28px;
+    font-weight:900;
+    line-height:1.1;
+    margin-top:14px;
+  }
+
+  .tenant-doc{
+    margin-top:6px;
+    color:#d1d5db;
+    font-size:14px;
+    font-weight:700;
+  }
+
+  .tenant-info{
+    margin-top:14px;
+    font-size:13px;
+    color:#d1d5db;
+    line-height:1.7;
+  }
+
+  .tenant-info strong{
+    color:#fff;
+  }
+
+  .status-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.4px;
+    width:max-content;
+  }
+
+  .badge-active{
+    background:#16a34a;
+    color:#fff;
+  }
+
+  .badge-inactive{
+    background:#dc2626;
+    color:#fff;
+  }
+
+  .tenant-preview-bottom{
+    padding:14px 16px;
+    background:#fff;
+    border-top:1px solid #f1f5f9;
+  }
+
+  .preview-note{
+    font-size:13px;
+    color:#6b7280;
+    line-height:1.5;
+  }
+
+  @media (max-width: 992px){
+    .edit-layout{
+      grid-template-columns:1fr;
+    }
+
+    .preview-wrap{
+      position:relative;
+      top:auto;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Editar Inquilino #{{ i.id }}</h1>
+      <p>Actualiza la información del cliente registrada en el sistema.</p>
+    </div>
+
+    <div>
+      <a class="btn btn-soft" href="/inquilinos">
+        <i class="bi bi-arrow-left me-1"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">Nombre actual</div>
+      <div class="value">{{ i.nombre or "-" }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">DNI actual</div>
+      <div class="value">{{ i.dni or "-" }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">WhatsApp actual</div>
+      <div class="value">{{ i.whatsapp or "-" }}</div>
+    </div>
+
+    <div class="summary-card">
+      <div class="label">Estado actual</div>
+      <div class="value">{{ i.estado or "-" }}</div>
+    </div>
+  </div>
+
+  <div class="edit-layout">
+
+    <!-- FORMULARIO -->
+    <div>
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-people-fill me-2"></i> Formulario de edición
+        </div>
+
+        <div class="card-body">
+          <div class="helper-box">
+            <div style="font-weight:800;color:#111827;">¿Qué puedes cambiar aquí?</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+              Modifica los datos personales y de contacto del inquilino. La vista previa se actualizará automáticamente.
+            </div>
+          </div>
+
+          <form class="row g-3" action="/inquilinos/{{ i.id }}/actualizar" method="post">
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">DNI</label>
+              <input class="form-control" id="editDni" name="dni" value="{{ i.dni or '' }}" required>
+              <div class="form-text">Documento de identidad del cliente.</div>
+            </div>
+
+            <div class="col-md-8">
+              <label class="form-label fw-bold">Nombre completo</label>
+              <input class="form-control" id="editNombre" name="nombre" value="{{ i.nombre or '' }}" required>
+              <div class="form-text">Se mostrará en contratos, pagos, reportes y cobranzas.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Teléfono</label>
+              <input class="form-control" id="editTelefono" name="telefono" value="{{ i.telefono or '' }}">
+              <div class="form-text">Número alternativo de contacto.</div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">WhatsApp</label>
+              <input class="form-control" id="editWhatsapp" name="whatsapp" value="{{ i.whatsapp or '' }}">
+              <div class="form-text">Se utilizará para recordatorios y envío de recibos.</div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Estado</label>
+              <select class="form-select" id="editEstado" name="estado">
+                <option value="Activo" {% if i.estado=="Activo" %}selected{% endif %}>Activo</option>
+                <option value="Inactivo" {% if i.estado!="Activo" %}selected{% endif %}>Inactivo</option>
+              </select>
+              <div class="form-text">Define si el cliente está operativo en el sistema.</div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end gap-2 flex-wrap">
+              <button class="btn btn-credimas" type="submit">
+                <i class="bi bi-check2-circle me-1"></i> Guardar cambios
+              </button>
+              <a class="btn btn-soft" href="/inquilinos">
+                <i class="bi bi-x-circle me-1"></i> Cancelar
+              </a>
+              <a class="btn btn-soft" href="/inquilinos/{{ i.id }}/detalle">
+                <i class="bi bi-eye me-1"></i> Ver detalle
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA PREVIA -->
+    <div class="preview-wrap">
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-eye me-2"></i> Vista previa
+        </div>
+
+        <div class="card-body">
+          <div class="tenant-card-preview">
+            <div class="tenant-preview-top">
+              <div>
+                <span id="previewStatus" class="status-badge {% if i.estado == 'Activo' %}badge-active{% else %}badge-inactive{% endif %}">
+                  {% if i.estado == 'Activo' %}
+                    <i class="bi bi-check-circle"></i> Activo
+                  {% else %}
+                    <i class="bi bi-x-circle"></i> Inactivo
+                  {% endif %}
+                </span>
+              </div>
+
+              <div>
+                <div class="tenant-avatar">
+                  <i class="bi bi-person-fill"></i>
+                </div>
+                <div class="tenant-name" id="previewNombre">{{ i.nombre or "Cliente" }}</div>
+                <div class="tenant-doc" id="previewDni">DNI: {{ i.dni or "-" }}</div>
+              </div>
+
+              <div class="tenant-info">
+                <div><strong>Teléfono:</strong> <span id="previewTelefono">{{ i.telefono or "-" }}</span></div>
+                <div><strong>WhatsApp:</strong> <span id="previewWhatsapp">{{ i.whatsapp or "-" }}</span></div>
+                <div><strong>Estado:</strong> <span id="previewEstadoTexto">{{ i.estado or "-" }}</span></div>
+              </div>
+            </div>
+
+            <div class="tenant-preview-bottom">
+              <div class="preview-note">
+                Así se verá la ficha principal del inquilino después de guardar los cambios.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+(function(){
+  const nombre = document.getElementById("editNombre");
+  const dni = document.getElementById("editDni");
+  const telefono = document.getElementById("editTelefono");
+  const whatsapp = document.getElementById("editWhatsapp");
+  const estado = document.getElementById("editEstado");
+
+  const previewNombre = document.getElementById("previewNombre");
+  const previewDni = document.getElementById("previewDni");
+  const previewTelefono = document.getElementById("previewTelefono");
+  const previewWhatsapp = document.getElementById("previewWhatsapp");
+  const previewEstadoTexto = document.getElementById("previewEstadoTexto");
+  const previewStatus = document.getElementById("previewStatus");
+
+  function actualizarPreview(){
+    const nombreVal = (nombre?.value || "").trim() || "Cliente";
+    const dniVal = (dni?.value || "").trim() || "-";
+    const telefonoVal = (telefono?.value || "").trim() || "-";
+    const whatsappVal = (whatsapp?.value || "").trim() || "-";
+    const estadoVal = (estado?.value || "Activo").trim();
+
+    if(previewNombre) previewNombre.textContent = nombreVal;
+    if(previewDni) previewDni.textContent = `DNI: ${dniVal}`;
+    if(previewTelefono) previewTelefono.textContent = telefonoVal;
+    if(previewWhatsapp) previewWhatsapp.textContent = whatsappVal;
+    if(previewEstadoTexto) previewEstadoTexto.textContent = estadoVal;
+
+    if(previewStatus){
+      previewStatus.className = "status-badge";
+
+      if(estadoVal === "Activo"){
+        previewStatus.classList.add("badge-active");
+        previewStatus.innerHTML = '<i class="bi bi-check-circle"></i> Activo';
+      } else {
+        previewStatus.classList.add("badge-inactive");
+        previewStatus.innerHTML = '<i class="bi bi-x-circle"></i> Inactivo';
+      }
+    }
+  }
+
+  if(nombre) nombre.addEventListener("input", actualizarPreview);
+  if(dni) dni.addEventListener("input", actualizarPreview);
+  if(telefono) telefono.addEventListener("input", actualizarPreview);
+  if(whatsapp) whatsapp.addEventListener("input", actualizarPreview);
+  if(estado) estado.addEventListener("change", actualizarPreview);
+
+  actualizarPreview();
+})();
+</script>
+{% endblock %}

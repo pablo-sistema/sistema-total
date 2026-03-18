@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block title %}Configuración | CREDIMAS{% endblock %}
+
+{% block content %}
+
+<style>
+  .module-board{ padding:4px 0 10px; }
+
+  .module-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:18px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+
+  .module-title h1{
+    margin:0;
+    font-size:36px;
+    line-height:1.05;
+    font-weight:900;
+    color:#7f1d1d;
+    letter-spacing:-1px;
+  }
+
+  .module-title p{
+    margin:8px 0 0;
+    color:#6b7280;
+    font-size:14px;
+  }
+
+  .config-layout{
+    display:grid;
+    grid-template-columns:380px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .helper-box{
+    background:#f9fafb;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+
+  .preview-box{
+    border:1px dashed #d1d5db;
+    border-radius:14px;
+    padding:16px;
+    background:#fcfcfd;
+  }
+
+  .preview-brand{
+    font-size:22px;
+    font-weight:900;
+    color:#111827;
+  }
+
+  .preview-muted{
+    color:#6b7280;
+    font-size:13px;
+    margin-top:4px;
+    line-height:1.5;
+  }
+
+  .preview-receipt{
+    margin-top:16px;
+    border:1px solid #e5e7eb;
+    border-radius:14px;
+    padding:14px;
+    background:#fff;
+  }
+
+  .preview-receipt .title{
+    font-weight:900;
+    color:#7f1d1d;
+    margin-bottom:8px;
+  }
+
+  @media (max-width: 992px){
+    .config-layout{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+
+<div class="module-board">
+
+  <div class="module-header">
+    <div class="module-title">
+      <h1>Configuración del Negocio</h1>
+      <p>Define los datos de tu empresa para usarlos en recibos, contratos, reportes y mensajes.</p>
+    </div>
+  </div>
+
+  <div class="config-layout">
+
+    <div>
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-building me-2"></i> Datos de empresa
+        </div>
+
+        <div class="card-body">
+          <div class="helper-box">
+            <div style="font-weight:800;color:#111827;">¿Para qué sirve esta sección?</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+              Aquí configuras la identidad del negocio para que el sistema imprima tus datos en recibos, contratos y reportes.
+            </div>
+          </div>
+
+          <form action="/configuracion/guardar" method="post" class="row g-3">
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Nombre comercial</label>
+              <input class="form-control" name="nombre_comercial" id="cfg_nombre_comercial" value="{{ config.nombre_comercial or '' }}">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Razón social</label>
+              <input class="form-control" name="razon_social" id="cfg_razon_social" value="{{ config.razon_social or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">RUC</label>
+              <input class="form-control" name="ruc" id="cfg_ruc" value="{{ config.ruc or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Moneda</label>
+              <input class="form-control" name="moneda" id="cfg_moneda" value="{{ config.moneda or 'S/' }}">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Dirección</label>
+              <input class="form-control" name="direccion" id="cfg_direccion" value="{{ config.direccion or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Teléfono</label>
+              <input class="form-control" name="telefono" id="cfg_telefono" value="{{ config.telefono or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">WhatsApp</label>
+              <input class="form-control" name="whatsapp" id="cfg_whatsapp" value="{{ config.whatsapp or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Correo</label>
+              <input class="form-control" name="correo" id="cfg_correo" value="{{ config.correo or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Ciudad</label>
+              <input class="form-control" name="ciudad" id="cfg_ciudad" value="{{ config.ciudad or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Día de corte</label>
+              <input type="number" min="1" max="31" class="form-control" name="dia_corte" id="cfg_dia_corte" value="{{ config.dia_corte or 25 }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Logo URL</label>
+              <input class="form-control" name="logo_url" id="cfg_logo_url" value="{{ config.logo_url or '' }}">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Mensaje del recibo</label>
+              <textarea class="form-control" rows="3" name="mensaje_recibo" id="cfg_mensaje_recibo">{{ config.mensaje_recibo or '' }}</textarea>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-bold">Pie de página</label>
+              <textarea class="form-control" rows="3" name="pie_pagina" id="cfg_pie_pagina">{{ config.pie_pagina or '' }}</textarea>
+            </div>
+
+            <div class="col-12 d-flex justify-content-end">
+              <button class="btn btn-credimas" type="submit">
+                <i class="bi bi-check2-circle me-1"></i> Guardar configuración
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card-pro">
+        <div class="card-header">
+          <i class="bi bi-eye me-2"></i> Vista previa
+        </div>
+
+        <div class="card-body">
+          <div class="preview-box">
+            <div class="preview-brand" id="preview_nombre">{{ config.nombre_comercial or 'CREDIMAS' }}</div>
+            <div class="preview-muted" id="preview_razon">{{ config.razon_social or 'Razón social' }}</div>
+            <div class="preview-muted" id="preview_ruc">RUC: {{ config.ruc or '-' }}</div>
+            <div class="preview-muted" id="preview_direccion">{{ config.direccion or 'Dirección del negocio' }}</div>
+            <div class="preview-muted" id="preview_contacto">
+              Tel: {{ config.telefono or '-' }} | WhatsApp: {{ config.whatsapp or '-' }}
+            </div>
+            <div class="preview-muted" id="preview_correo">{{ config.correo or '-' }}</div>
+
+            <div class="preview-receipt">
+              <div class="title">Vista previa del recibo</div>
+              <div class="preview-muted"><strong>Cliente:</strong> Juan Pérez</div>
+              <div class="preview-muted"><strong>Habitación:</strong> 203</div>
+              <div class="preview-muted"><strong>Monto:</strong> {{ config.moneda or 'S/' }} 150.00</div>
+              <div class="preview-muted"><strong>Fecha:</strong> 2026-03-15</div>
+              <hr>
+              <div class="preview-muted" id="preview_mensaje">{{ config.mensaje_recibo or 'Gracias por su pago.' }}</div>
+              <div class="preview-muted" style="margin-top:10px;" id="preview_pie">{{ config.pie_pagina or 'Documento generado por CREDIMAS.' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+(function(){
+  const ids = [
+    "nombre_comercial","razon_social","ruc","direccion","telefono","whatsapp","correo",
+    "mensaje_recibo","pie_pagina","moneda"
+  ];
+
+  function v(id){
+    const el = document.getElementById("cfg_" + id);
+    return el ? el.value.trim() : "";
+  }
+
+  function actualizar(){
+    const nombre = v("nombre_comercial") || "CREDIMAS";
+    const razon = v("razon_social") || "Razón social";
+    const ruc = v("ruc") || "-";
+    const direccion = v("direccion") || "Dirección del negocio";
+    const telefono = v("telefono") || "-";
+    const whatsapp = v("whatsapp") || "-";
+    const correo = v("correo") || "-";
+    const mensaje = v("mensaje_recibo") || "Gracias por su pago.";
+    const pie = v("pie_pagina") || "Documento generado por CREDIMAS.";
+    const moneda = v("moneda") || "S/";
+
+    document.getElementById("preview_nombre").textContent = nombre;
+    document.getElementById("preview_razon").textContent = razon;
+    document.getElementById("preview_ruc").textContent = "RUC: " + ruc;
+    document.getElementById("preview_direccion").textContent = direccion;
+    document.getElementById("preview_contacto").textContent = "Tel: " + telefono + " | WhatsApp: " + whatsapp;
+    document.getElementById("preview_correo").textContent = correo;
+    document.getElementById("preview_mensaje").textContent = mensaje;
+    document.getElementById("preview_pie").textContent = pie;
+  }
+
+  ids.forEach(id => {
+    const el = document.getElementById("cfg_" + id);
+    if(el){
+      el.addEventListener("input", actualizar);
+    }
+  });
+
+  actualizar();
+})();
+</script>
+{% endblock %}
