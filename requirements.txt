@@ -8,3 +8,4 @@ passlib[bcrypt]
 gunicorn
 reportlab
 openpyxl
+psycopg2-binary
