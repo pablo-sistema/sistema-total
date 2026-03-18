@@ -2691,7 +2691,7 @@ def dashboard_registrar_pago(
         )
 
         tipo_pago = (tipo_pago or "todo").strip().lower()
-        if monto > deuda_total:
+        if monto_disponible > deuda_total:
             raise HTTPException(400, "El monto excede la deuda")
 
         if tipo_pago == "alquiler":
