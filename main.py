@@ -2684,15 +2684,13 @@ def dashboard_registrar_pago(
         if monto_disponible <= 0:
             raise HTTPException(400, "El monto debe ser mayor a cero")
 
+        tipo_pago = (tipo_pago or "todo").strip().lower()
+
         query = db.query(Cargo).filter(
             Cargo.contrato_id == contrato_id,
             Cargo.periodo == periodo,
             Cargo.estado.in_(["Pendiente", "Parcial"])
         )
-
-        tipo_pago = (tipo_pago or "todo").strip().lower()
-        if monto_disponible > deuda_total:
-            raise HTTPException(400, "El monto excede la deuda")
 
         if tipo_pago == "alquiler":
             query = query.filter(
@@ -2718,7 +2716,7 @@ def dashboard_registrar_pago(
 
         total_pendiente = 0.0
         for c in cargos:
-            saldo = float(c.monto or 0) - float(c.pagado_acumulado or 0)
+            saldo = round(float(c.monto or 0) - float(c.pagado_acumulado or 0), 2)
             if saldo > 0:
                 total_pendiente += saldo
 
@@ -2730,7 +2728,13 @@ def dashboard_registrar_pago(
                 f"El monto excede el total pendiente seleccionado. Máximo: S/ {total_pendiente:.2f}"
             )
 
-        fecha = date.fromisoformat(fecha_pago)
+        try:
+            if "/" in fecha_pago:
+                fecha = datetime.strptime(fecha_pago, "%d/%m/%Y").date()
+            else:
+                fecha = date.fromisoformat(fecha_pago)
+        except Exception:
+            raise HTTPException(400, "La fecha de pago es inválida")
 
         ultimo_pago_id = None
 
@@ -2771,6 +2775,9 @@ def dashboard_registrar_pago(
 
         return RedirectResponse(url="/dashboard", status_code=303)
 
+    except HTTPException:
+        db.rollback()
+        raise
     finally:
         db.close()
 # =========================================================
