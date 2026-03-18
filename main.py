@@ -1952,8 +1952,8 @@ def contratos_eliminar(request: Request, contrato_id: int):
             prop.estado = "libre"
 
         db.query(Pago).filter(Pago.contrato_id == contrato_id).delete()
-        db.query(Cargo).filter(Cargo.contrato_id == contrato_id).delete()
-        db.query(Lectura).filter(Lectura.contrato_id == contrato_id).delete()
+        # db.query(Cargo).filter(Cargo.contrato_id == contrato_id).delete()
+        # db.query(Lectura).filter(Lectura.contrato_id == contrato_id).delete()
 
         db.delete(c)
 
